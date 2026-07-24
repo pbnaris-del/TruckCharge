@@ -1,0 +1,33 @@
+{
+  "description": "ET to HQ baseline pricing. Base tier 29.01-31.00 THB/L. FSC adds per tier.",
+  "base_tier": { "min": 29.01, "max": 31.00 },
+  "fsc_tiers": [
+    { "min": 0.00, "max": 29.00, "surcharge": 0, "note": "Subject to review" },
+    { "min": 29.01, "max": 31.00, "surcharge": 0 },
+    { "min": 31.01, "max": 33.00, "surcharge": 200 },
+    { "min": 33.01, "max": 35.00, "surcharge": 400 },
+    { "min": 35.01, "max": 37.00, "surcharge": 600 },
+    { "min": 37.01, "max": 39.00, "surcharge": 800 },
+    { "min": 39.01, "max": 41.00, "surcharge": 1000 },
+    { "min": 41.01, "max": 43.00, "surcharge": 1200 },
+    { "min": 43.01, "max": 45.00, "surcharge": 1400 },
+    { "min": 45.01, "max": 47.00, "surcharge": 1600 },
+    { "min": 47.01, "max": 49.00, "surcharge": 1800 },
+    { "min": 49.01, "max": 51.00, "surcharge": 2000 }
+  ],
+  "routes": {
+    "bkk_to_gws_lcb": { "base_rate": 2600 },
+    "bkk_to_bwt_lcb": { "base_rate": 2600 },
+    "bkk_to_pds_lcb": { "base_rate": 3100 },
+    "bkk_to_fsts_lcb": { "base_rate": 3300 },
+    "bkk_to_pdsr": { "base_rate": 3600 },
+    "sot_bkk_to_hmj_lcb": { "base_rate": 3300 },
+    "lcb_to_gws_lcb": { "base_rate": 3100 },
+    "lcb_to_bwt_lcb": { "base_rate": 3100 },
+    "lcb_to_pds_lcb": { "base_rate": 2900 },
+    "lcb_to_fsts_lcb": { "base_rate": 3400 },
+    "lcb_to_sot_hmj": { "base_rate": 3400 },
+    "lcb_to_pdsr": { "base_rate": 3600 },
+    "lcb_to_cotac_lcb": { "base_rate": 2900 }
+  }
+}

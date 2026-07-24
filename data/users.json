@@ -1,0 +1,16 @@
+{
+  "users": [
+    {
+      "username": "Naris",
+      "password_hash": "ac75f2848ac074e457dd8f2f0c13268d53f1c909e2f2c43c16cc8826b2525558",
+      "role": "admin",
+      "display": "Naris Eway"
+    },
+    {
+      "username": "Saiparn",
+      "password_hash": "be85997eced489125c9cba1d64683454d48005c13d6746c62454af971b1cc889",
+      "role": "admin",
+      "display": "Saiparn"
+    }
+  ]
+}

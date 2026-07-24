@@ -1,0 +1,19 @@
+{
+  "description": "KISWIRE FSC markup in USD. No baseline rates. 40' container = 2x markup.",
+  "note": "This is FSC markup only, not full pricing. Multiply by 2 for 40' container.",
+  "base_tier": { "min": 29.01, "max": 31.00 },
+  "fsc_tiers": [
+    { "min": 0.00, "max": 29.00, "markup_usd": 0, "note": "Subject to review" },
+    { "min": 29.01, "max": 31.00, "markup_usd": 0 },
+    { "min": 31.01, "max": 33.00, "markup_usd": 10 },
+    { "min": 33.01, "max": 35.00, "markup_usd": 20 },
+    { "min": 35.01, "max": 37.00, "markup_usd": 30 },
+    { "min": 37.01, "max": 39.00, "markup_usd": 40 },
+    { "min": 39.01, "max": 41.00, "markup_usd": 50 },
+    { "min": 41.01, "max": 43.00, "markup_usd": 60 },
+    { "min": 43.01, "max": 45.00, "markup_usd": 70 },
+    { "min": 45.01, "max": 47.00, "markup_usd": 80 },
+    { "min": 47.01, "max": 49.00, "markup_usd": 90 },
+    { "min": 49.01, "max": 51.00, "markup_usd": 100 }
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "et_routes": [
+    { "id": "bkk_to_gws_lcb", "origin": "BKK", "destination": "GWS LCB", "display": "BKK → GWS LCB" },
+    { "id": "bkk_to_bwt_lcb", "origin": "BKK", "destination": "BWT LCB", "display": "BKK → BWT LCB" },
+    { "id": "bkk_to_pds_lcb", "origin": "BKK", "destination": "PDS LCB", "display": "BKK → PDS LCB" },
+    { "id": "bkk_to_fsts_lcb", "origin": "BKK", "destination": "FSTS LCB", "display": "BKK → FSTS LCB" },
+    { "id": "bkk_to_pdsr", "origin": "BKK", "destination": "PDSR", "display": "BKK → PDSR" },
+    { "id": "sot_bkk_to_hmj_lcb", "origin": "SOT BKK", "destination": "HMJ LCB", "display": "SOT BKK → HMJ LCB" },
+    { "id": "lcb_to_gws_lcb", "origin": "LCB", "destination": "GWS LCB", "display": "LCB → GWS LCB" },
+    { "id": "lcb_to_bwt_lcb", "origin": "LCB", "destination": "BWT LCB", "display": "LCB → BWT LCB" },
+    { "id": "lcb_to_pds_lcb", "origin": "LCB", "destination": "PDS LCB", "display": "LCB → PDS LCB" },
+    { "id": "lcb_to_fsts_lcb", "origin": "LCB", "destination": "FSTS LCB", "display": "LCB → FSTS LCB" },
+    { "id": "lcb_to_sot_hmj", "origin": "LCB", "destination": "SOT HMJ", "display": "LCB → SOT HMJ" },
+    { "id": "lcb_to_pdsr", "origin": "LCB", "destination": "PDSR", "display": "LCB → PDSR" },
+    { "id": "lcb_to_cotac_lcb", "origin": "LCB", "destination": "COTAC LCB", "display": "LCB → COTAC LCB" }
+  ]
+}
