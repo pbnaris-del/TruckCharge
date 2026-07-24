@@ -370,7 +370,8 @@ def main():
 
     # ── Login ──
     if "user" not in st.session_state:
-        if st.session_state.pop("_signed_out", False):
+        if st.session_state.get("_signed_out", False):
+            st.session_state["_signed_out"] = False
             st.info("👋 Signed out successfully.")
         st.markdown("## 🚛 E-WAY Invoice Auditor")
         st.markdown("---")
@@ -753,3 +754,4 @@ TRANS = {
 
 if __name__ == "__main__":
     main()
+
