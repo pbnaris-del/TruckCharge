@@ -17,6 +17,8 @@ VERSION_FILE = DATA_DIR / ".version"
 
 def _fetch_ptt_month(year_be, month):
     import requests as req
+    import calendar
+    from datetime import date
     resp = req.post(PTT_AJAX_URL, data={
         "action": "fetch_oil_prices",
         "province": "กรุงเทพมหานคร",
@@ -28,25 +30,41 @@ def _fetch_ptt_month(year_be, month):
     result = resp.json()
     if not result.get("success"):
         return None
-    from datetime import date
-    prices = {}
+
     year_ce = year_be - 543
-    for day_data in result["data"]:
+    raw_events = {}
+    for day_data in result.get("data", []):
         day_num = day_data.get("day")
         if day_num is None:
             continue
         diesel_price = None
         for oil in day_data.get("priceData", []):
-            if oil.get("OilTypeId") == PTT_OIL_TYPE:
+            if oil.get("OilTypeId") in (PTT_OIL_TYPE, "ดีเซล", "Standard Diesel", "Diesel"):
                 diesel_price = oil.get("Price")
                 break
         if diesel_price is not None:
             try:
                 d = date(year_ce, month, int(day_num))
-                prices[d.isoformat()] = float(diesel_price)
+                raw_events[d.isoformat()] = float(diesel_price)
             except (ValueError, TypeError):
                 continue
-    return prices
+
+    if not raw_events:
+        return None
+
+    num_days = calendar.monthrange(year_ce, month)[1]
+    filled_prices = {}
+    last_price = None
+    for day_idx in range(1, num_days + 1):
+        iso_str = f"{year_ce:04d}-{month:02d}-{day_idx:02d}"
+        if iso_str in raw_events:
+            last_price = raw_events[iso_str]
+            filled_prices[iso_str] = last_price
+        elif last_price is not None:
+            filled_prices[iso_str] = last_price
+
+    filled_prices.update(raw_events)
+    return filled_prices
 
 
 def fetch_month_from_ptt(year_be, month):
