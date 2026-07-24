@@ -252,6 +252,7 @@ with st.container(border=True):
     fp_key = "_fuel_prices_df"
     if fp_key not in st.session_state:
         df = pd.DataFrame(sorted(prices.items(), key=lambda x: x[0]), columns=["Date", "Price (THB/L)"])
+        df["Date"] = pd.to_datetime(df["Date"])
         st.session_state[fp_key] = df
     edited = st.data_editor(
         st.session_state[fp_key],
@@ -275,8 +276,8 @@ with st.container(border=True):
             for r in records:
                 dt = r.get("Date")
                 pr = r.get("Price (THB/L)")
-                if dt is not None and pr is not None:
-                    key = dt.isoformat() if hasattr(dt, "isoformat") else str(dt)
+                if dt is not None and pd.notna(dt) and pr is not None and pd.notna(pr):
+                    key = dt.strftime("%Y-%m-%d") if hasattr(dt, "strftime") else str(dt)[:10]
                     new_prices[key] = float(pr)
             fp["prices"] = new_prices
             save_json(DATA_DIR / "ptt_fuel_prices.json", fp)
