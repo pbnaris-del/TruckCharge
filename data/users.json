@@ -11,6 +11,12 @@
       "password_hash": "be85997eced489125c9cba1d64683454d48005c13d6746c62454af971b1cc889",
       "role": "admin",
       "display": "Saiparn"
+    },
+    {
+      "username": "JP",
+      "password_hash": "20c1527b1adc8da23853038b158463d71e4ca2806ccff6f99d6a41e2573ca163",
+      "role": "admin",
+      "display": "JP"
     }
   ]
 }
