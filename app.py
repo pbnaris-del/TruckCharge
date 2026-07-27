@@ -434,13 +434,24 @@ def main():
         f'<span class="sec-icon">📋</span>{t["kiswire_customer"]}</div></div>',
         unsafe_allow_html=True,
     )
-    customer_names = [t["select_kiswire"]] + [c["customer"] for c in customer_list]
+    customer_indices = list(range(len(customer_list) + 1))
+    def format_customer_opt(idx):
+        if idx == 0:
+            return t["select_kiswire"]
+        c = customer_list[idx - 1]
+        return f"{c['customer']} ({c['location']})"
+
     matched_idx = match_kiswire_customer(sel_route_display, sel_vendor, sel_route.get("et_route_id"), customer_list)
     default_idx = matched_idx + 1 if matched_idx is not None else 0
-    sel_customer_name = st.sidebar.selectbox("", customer_names, index=default_idx, label_visibility="collapsed")
-    sel_customer = None
-    if sel_customer_name and not sel_customer_name.startswith("—"):
-        sel_customer = next(c for c in customer_list if c["customer"] == sel_customer_name)
+    sel_customer_idx = st.sidebar.selectbox(
+        "",
+        customer_indices,
+        index=default_idx,
+        format_func=format_customer_opt,
+        label_visibility="collapsed"
+    )
+    sel_customer = customer_list[sel_customer_idx - 1] if sel_customer_idx > 0 else None
+    sel_customer_name = sel_customer["customer"] if sel_customer else ""
 
     # ── Sidebar: Fuel Price ──
     st.sidebar.markdown(f'<div class="sidebar-section"><div class="sidebar-section-title"><span class="sec-icon">⛽</span>{t["fuel_section"]}</div></div>', unsafe_allow_html=True)

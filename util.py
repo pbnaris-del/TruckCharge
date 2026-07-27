@@ -132,6 +132,9 @@ def match_kiswire_customer(route_display, vendor_name, et_route_id, customer_lis
         ("michelin nongkhae", "MICHELIN SIAM CO.,LTD.", "sara buri"),
         ("michelin lch", "MICHELIN SIAM CO.,LTD.", "chon buri"),
         ("michelin (laem chabang)", "MICHELIN SIAM CO.,LTD.", "chon buri"),
+        ("มิชลิน แหลมฉบัง", "MICHELIN SIAM CO.,LTD.", "chon buri"),
+        ("มิชลิน หนองแค", "MICHELIN SIAM CO.,LTD.", "sara buri"),
+        ("มิชลิน พระประแดง", "MICHELIN SIAM CO.,LTD.", "phrapradeang"),
     ]
     for pattern, cname, loc in route_patterns:
         if pattern in rlower:
