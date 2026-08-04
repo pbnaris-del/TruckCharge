@@ -79,6 +79,7 @@ routes_cfg = load_json(DATA_DIR / "canonical_routes.json")
 et_routes = {r["id"]: r for r in routes_cfg["et_routes"]}
 master = _load_master()
 vendors = master["vendors"]
+vendor_names = sorted(vendors.keys())
 
 # ── SECTION: BULK EXCEL EXPORT & IMPORT ──
 st.header("📊 Bulk Export & Import (Excel)")
