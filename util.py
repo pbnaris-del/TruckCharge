@@ -356,6 +356,7 @@ def export_master_to_excel(master):
             rows.append({
                 "Vendor": vname,
                 "Company": company,
+                "Route ID": "",
                 "Route": "",
                 "Min Diesel (THB/L)": 0.0,
                 "Max Diesel (THB/L)": 99.99,
@@ -365,6 +366,7 @@ def export_master_to_excel(master):
             })
         else:
             for r in routes:
+                rid = r.get("id", "")
                 rdisplay = r.get("display", "")
                 is_et = r.get("is_et_route", False)
                 et_id = r.get("et_route_id", "")
@@ -373,6 +375,7 @@ def export_master_to_excel(master):
                     rows.append({
                         "Vendor": vname,
                         "Company": company,
+                        "Route ID": rid,
                         "Route": rdisplay,
                         "Min Diesel (THB/L)": 0.0,
                         "Max Diesel (THB/L)": 99.99,
@@ -385,6 +388,7 @@ def export_master_to_excel(master):
                         rows.append({
                             "Vendor": vname,
                             "Company": company,
+                            "Route ID": rid,
                             "Route": rdisplay,
                             "Min Diesel (THB/L)": float(b.get("min", 0)),
                             "Max Diesel (THB/L)": float(b.get("max", 99.99)),
@@ -417,6 +421,8 @@ def import_master_from_excel(file_obj, username="system"):
             col_map["vendor"] = c
         elif "company" in clower:
             col_map["company"] = c
+        elif "route id" in clower or "route_id" in clower or clower == "id":
+            col_map["route_id"] = c
         elif "route" in clower and "et" not in clower:
             col_map["route"] = c
         elif "min" in clower:
@@ -436,7 +442,6 @@ def import_master_from_excel(file_obj, username="system"):
     master = _load_master()
     import re
     existing_vendors = master.get("vendors", {})
-    # Map normalized vendor names to original case
     norm_vendor_map = {re.sub(r'\s+', ' ', v).strip().upper(): v for v in existing_vendors.keys()}
 
     new_vendors = {}
@@ -452,6 +457,7 @@ def import_master_from_excel(file_obj, username="system"):
         company = re.sub(r'\s+', ' ', str(row[col_map["company"]])).strip() if "company" in col_map and pd.notna(row[col_map["company"]]) else vname
         raw_r = str(row[col_map["route"]]) if pd.notna(row[col_map["route"]]) else ""
         clean_r = re.sub(r'\s+', ' ', raw_r).strip()
+        route_id = str(row[col_map["route_id"]]).strip() if "route_id" in col_map and pd.notna(row[col_map["route_id"]]) else ""
 
         try:
             rmin = float(row[col_map["min"]]) if "min" in col_map and pd.notna(row[col_map["min"]]) else 0.0
@@ -479,22 +485,31 @@ def import_master_from_excel(file_obj, username="system"):
 
         if vname not in new_vendors:
             old_routes = existing_vendors.get(vname, {}).get("routes", [])
-            # Map normalized route display to original display string
+            id_route_map = {r.get("id"): r["display"] for r in old_routes if r.get("id")}
             norm_route_map = {re.sub(r'\s+', ' ', r["display"]).strip().lower(): r["display"] for r in old_routes}
             new_vendors[vname] = {
                 "company": company,
                 "notes": existing_vendors.get(vname, {}).get("notes", ""),
+                "id_route_map": id_route_map,
                 "norm_route_map": norm_route_map,
                 "routes": {}
             }
 
-        if clean_r:
-            norm_r_key = clean_r.lower()
-            norm_route_map = new_vendors[vname]["norm_route_map"]
-            rdisplay = norm_route_map.get(norm_r_key, clean_r)
+        if clean_r or route_id:
+            id_map = new_vendors[vname]["id_route_map"]
+            norm_map = new_vendors[vname]["norm_route_map"]
 
-            rid = rdisplay.lower().replace(" ", "_").replace("→", "to")
-            rid = "".join(c if c.isalnum() or c == "_" else "_" for c in rid)
+            if route_id and route_id in id_map:
+                rdisplay = clean_r or id_map[route_id]
+                rid = route_id
+            elif clean_r.lower() in norm_map:
+                rdisplay = norm_map[clean_r.lower()]
+                rid = route_id or rdisplay.lower().replace(" ", "_").replace("→", "to")
+                rid = "".join(c if c.isalnum() or c == "_" else "_" for c in rid)
+            else:
+                rdisplay = clean_r
+                rid = route_id or rdisplay.lower().replace(" ", "_").replace("→", "to")
+                rid = "".join(c if c.isalnum() or c == "_" else "_" for c in rid)
 
             v_routes = new_vendors[vname]["routes"]
             if rdisplay not in v_routes:
