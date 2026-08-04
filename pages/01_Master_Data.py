@@ -254,8 +254,49 @@ with st.container(border=True):
         df = pd.DataFrame(sorted(prices.items(), key=lambda x: x[0]), columns=["Date", "Price (THB/L)"])
         df["Date"] = pd.to_datetime(df["Date"])
         st.session_state[fp_key] = df
-    edited = st.data_editor(
-        st.session_state[fp_key],
+
+    full_df = st.session_state[fp_key].copy()
+
+    from datetime import date as dt_date
+    years = sorted(list({d.year for d in full_df["Date"] if pd.notna(d)}), reverse=True)
+    curr_year = dt_date.today().year
+    default_year_idx = years.index(curr_year) + 1 if curr_year in years else (1 if years else 0)
+
+    months_th = ["ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.",
+                 "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค."]
+
+    cf1, cf2, cf3 = st.columns([1, 1, 2])
+    with cf1:
+        sel_year = st.selectbox(
+            "Filter Year",
+            ["All Years"] + [str(y) for y in years],
+            index=default_year_idx if len(years) > 0 else 0,
+            key="fp_filter_year"
+        )
+    with cf2:
+        curr_month = dt_date.today().month
+        sel_month = st.selectbox(
+            "Filter Month",
+            ["All Months"] + [f"{m:02d} ({months_th[m-1]})" for m in range(1, 13)],
+            index=curr_month if sel_year != "All Years" else 0,
+            key="fp_filter_month"
+        )
+    with cf3:
+        st.markdown("<br>", unsafe_allow_html=True)
+
+    # Apply filtering
+    mask = pd.Series(True, index=full_df.index)
+    if sel_year != "All Years":
+        mask = mask & (full_df["Date"].dt.year == int(sel_year))
+    if sel_month != "All Months":
+        m_idx = int(sel_month.split()[0])
+        mask = mask & (full_df["Date"].dt.month == m_idx)
+
+    view_df = full_df[mask].reset_index(drop=True)
+    st.caption(f"Showing **{len(view_df)}** of **{len(full_df)}** fuel price entries")
+
+    edited_view = st.data_editor(
+        view_df,
         column_config={
             "Date": st.column_config.DateColumn("Date", format="YYYY-MM-DD", required=True),
             "Price (THB/L)": st.column_config.NumberColumn("Price (THB/L)", min_value=0.0, max_value=99.99, format="%.2f", required=True),
@@ -263,9 +304,14 @@ with st.container(border=True):
         hide_index=True,
         use_container_width=True,
         num_rows="dynamic",
+        key="fp_data_editor"
     )
-    if edited is not None:
-        st.session_state[fp_key] = edited if isinstance(edited, pd.DataFrame) else pd.DataFrame(edited)
+
+    if edited_view is not None:
+        other_rows = full_df[~mask]
+        merged_df = pd.concat([other_rows, edited_view], ignore_index=True)
+        merged_df = merged_df.drop_duplicates(subset=["Date"], keep="last").sort_values("Date").reset_index(drop=True)
+        st.session_state[fp_key] = merged_df
 
     fc1, fc2, fc3 = st.columns([1, 1, 3])
     with fc1:
