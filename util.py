@@ -344,6 +344,179 @@ def _save_bands_to_master(vendor_name, route_display, bands, username="system"):
     log_activity(username, "bands_saved", f"Price tiers for {vendor_name} → {route_display}")
 
 
+def export_master_to_excel(master):
+    import io
+    import pandas as pd
+    rows = []
+    vendors = master.get("vendors", {})
+    for vname, vdata in vendors.items():
+        company = vdata.get("company", vname)
+        routes = vdata.get("routes", [])
+        if not routes:
+            rows.append({
+                "Vendor": vname,
+                "Company": company,
+                "Route": "",
+                "Min Diesel (THB/L)": 0.0,
+                "Max Diesel (THB/L)": 99.99,
+                "Rate (THB)": 0.0,
+                "Is ET Route": False,
+                "ET Route ID": ""
+            })
+        else:
+            for r in routes:
+                rdisplay = r.get("display", "")
+                is_et = r.get("is_et_route", False)
+                et_id = r.get("et_route_id", "")
+                bands = r.get("bands", [])
+                if not bands:
+                    rows.append({
+                        "Vendor": vname,
+                        "Company": company,
+                        "Route": rdisplay,
+                        "Min Diesel (THB/L)": 0.0,
+                        "Max Diesel (THB/L)": 99.99,
+                        "Rate (THB)": 0.0,
+                        "Is ET Route": is_et,
+                        "ET Route ID": et_id
+                    })
+                else:
+                    for b in bands:
+                        rows.append({
+                            "Vendor": vname,
+                            "Company": company,
+                            "Route": rdisplay,
+                            "Min Diesel (THB/L)": float(b.get("min", 0)),
+                            "Max Diesel (THB/L)": float(b.get("max", 99.99)),
+                            "Rate (THB)": float(b.get("rate", 0)),
+                            "Is ET Route": is_et,
+                            "ET Route ID": et_id
+                        })
+
+    df = pd.DataFrame(rows)
+    buf = io.BytesIO()
+    with pd.ExcelWriter(buf, engine="openpyxl") as writer:
+        df.to_excel(writer, index=False, sheet_name="Master Data")
+    return buf.getvalue()
+
+
+def import_master_from_excel(file_obj, username="system"):
+    import pandas as pd
+    if hasattr(file_obj, "name") and file_obj.name.lower().endswith(".csv"):
+        df = pd.read_csv(file_obj)
+    else:
+        df = pd.read_excel(file_obj)
+
+    if df.empty:
+        return False, "File is empty."
+
+    col_map = {}
+    for c in df.columns:
+        clower = str(c).strip().lower()
+        if "vendor" in clower:
+            col_map["vendor"] = c
+        elif "company" in clower:
+            col_map["company"] = c
+        elif "route" in clower and "et" not in clower:
+            col_map["route"] = c
+        elif "min" in clower:
+            col_map["min"] = c
+        elif "max" in clower:
+            col_map["max"] = c
+        elif "rate" in clower or "price" in clower or "cost" in clower:
+            col_map["rate"] = c
+        elif "is et" in clower or "et route" in clower:
+            col_map["is_et"] = c
+        elif "et" in clower and "id" in clower:
+            col_map["et_id"] = c
+
+    if "vendor" not in col_map or "route" not in col_map or "rate" not in col_map:
+        return False, "Missing required columns in Excel. Headers must include 'Vendor', 'Route', and 'Rate (THB)'."
+
+    master = _load_master()
+    new_vendors = {}
+
+    for idx, row in df.iterrows():
+        vname = str(row[col_map["vendor"]]).strip().upper() if pd.notna(row[col_map["vendor"]]) else ""
+        if not vname or vname.startswith("—") or vname == "NAN":
+            continue
+
+        company = str(row[col_map["company"]]).strip() if "company" in col_map and pd.notna(row[col_map["company"]]) else vname
+        rdisplay = str(row[col_map["route"]]).strip() if pd.notna(row[col_map["route"]]) else ""
+
+        try:
+            rmin = float(row[col_map["min"]]) if "min" in col_map and pd.notna(row[col_map["min"]]) else 0.0
+        except (ValueError, TypeError):
+            rmin = 0.0
+
+        try:
+            rmax = float(row[col_map["max"]]) if "max" in col_map and pd.notna(row[col_map["max"]]) else 99.99
+        except (ValueError, TypeError):
+            rmax = 99.99
+
+        try:
+            rrate = float(row[col_map["rate"]]) if pd.notna(row[col_map["rate"]]) else 0.0
+        except (ValueError, TypeError):
+            rrate = 0.0
+
+        is_et = False
+        if "is_et" in col_map and pd.notna(row[col_map["is_et"]]):
+            val_et = str(row[col_map["is_et"]]).strip().upper()
+            is_et = val_et in ["TRUE", "1", "YES"]
+
+        et_id = ""
+        if "et_id" in col_map and pd.notna(row[col_map["et_id"]]):
+            et_id = str(row[col_map["et_id"]]).strip()
+
+        if vname not in new_vendors:
+            new_vendors[vname] = {
+                "company": company,
+                "notes": master.get("vendors", {}).get(vname, {}).get("notes", ""),
+                "routes": {}
+            }
+
+        if rdisplay:
+            rid = rdisplay.lower().replace(" ", "_").replace("→", "to")
+            rid = "".join(c if c.isalnum() or c == "_" else "_" for c in rid)
+
+            v_routes = new_vendors[vname]["routes"]
+            if rdisplay not in v_routes:
+                v_routes[rdisplay] = {
+                    "id": rid,
+                    "display": rdisplay,
+                    "is_et_route": is_et,
+                    "bands": []
+                }
+                if et_id:
+                    v_routes[rdisplay]["et_route_id"] = et_id
+
+            v_routes[rdisplay]["bands"].append({
+                "min": rmin,
+                "max": rmax,
+                "rate": rrate
+            })
+
+    final_vendors = {}
+    total_routes = 0
+    total_bands = 0
+    for vname, vdict in new_vendors.items():
+        route_list = []
+        for rdisp, rdata in vdict["routes"].items():
+            route_list.append(rdata)
+            total_routes += 1
+            total_bands += len(rdata["bands"])
+        final_vendors[vname] = {
+            "company": vdict["company"],
+            "notes": vdict["notes"],
+            "routes": route_list
+        }
+
+    master["vendors"] = final_vendors
+    _save_master(master)
+    log_activity(username, "excel_imported", f"Imported {len(final_vendors)} vendors, {total_routes} routes, {total_bands} bands")
+    return True, f"✅ Master Data updated! Imported {len(final_vendors)} vendors, {total_routes} routes, and {total_bands} price tiers."
+
+
 def parse_rate_sheet_file(file_obj, filename):
     import re
     import pandas as pd

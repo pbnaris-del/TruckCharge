@@ -6,7 +6,8 @@ from util import (
     _delete_vendor_from_master, _save_route_to_master,
     _delete_route_from_master, _save_bands_to_master,
     get_activity_log, fetch_month_from_ptt,
-    parse_rate_sheet_file,
+    parse_rate_sheet_file, export_master_to_excel,
+    import_master_from_excel,
 )
 
 st.set_page_config(page_title="Master Data Management", page_icon="🛠️", layout="wide")
@@ -79,7 +80,45 @@ et_routes = {r["id"]: r for r in routes_cfg["et_routes"]}
 master = _load_master()
 vendors = master["vendors"]
 
-vendor_names = sorted(vendors.keys())
+# ── SECTION: BULK EXCEL EXPORT & IMPORT ──
+st.header("📊 Bulk Export & Import (Excel)")
+st.caption("Download full Master Data to Excel for easy editing, or upload an edited Excel file to update Master Data in bulk.")
+with st.container(border=True):
+    ex_col1, ex_col2 = st.columns([1, 1])
+    with ex_col1:
+        st.markdown("##### 📥 Export Master Data")
+        st.caption("Download all Vendors, Routes, and Price Tiers into a single Excel file.")
+        excel_data = export_master_to_excel(master)
+        st.download_button(
+            label="📥 Download Master Data (.xlsx)",
+            data=excel_data,
+            file_name="trucking_master_data.xlsx",
+            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            type="primary",
+            use_container_width=True
+        )
+
+    with ex_col2:
+        st.markdown("##### 📤 Import / Update Master Data")
+        st.caption("Upload your edited Excel file (.xlsx or .csv) to update Master Data.")
+        up_excel = st.file_uploader(
+            "Choose Excel File",
+            type=["xlsx", "xls", "csv"],
+            key="bulk_excel_uploader",
+            label_visibility="collapsed"
+        )
+        if up_excel is not None:
+            if st.button("📤 Apply Excel Update to Master Data", type="primary", use_container_width=True):
+                with st.spinner("Updating Master Data..."):
+                    ok, msg = import_master_from_excel(up_excel, username=username)
+                    if ok:
+                        st.session_state["_admin_msg"] = (msg, "success")
+                        for k in list(st.session_state.keys()):
+                            if k.startswith("master_bands_"):
+                                del st.session_state[k]
+                        st.rerun()
+                    else:
+                        st.error(msg)
 
 # ── SECTION: VENDOR ──
 st.header("Vendors")
