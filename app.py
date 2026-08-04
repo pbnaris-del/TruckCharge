@@ -358,9 +358,10 @@ def build_na_card(msg):
     return f'<div class="result-card"><div class="rc-na">{msg}</div></div>'
 
 
-def on_date_change(fuel_prices):
+def on_date_change():
     d = st.session_state.date_input
-    price = lookup_fuel_price(fuel_prices, d)
+    fp = load_json(DATA_DIR / "ptt_fuel_prices.json")["prices"]
+    price = lookup_fuel_price(fp, d)
     if price is not None:
         st.session_state.diesel_input = price
 
@@ -462,7 +463,7 @@ def main():
         st.session_state.diesel_input = price or 34.94
 
     d = st.sidebar.date_input(t["date"], value=today, key="date_input",
-                              on_change=on_date_change, args=(fuel_prices,), label_visibility="collapsed")
+                              on_change=on_date_change, label_visibility="collapsed")
 
     diesel = st.sidebar.number_input(t["diesel"], min_value=0.0, max_value=99.99,
                                       key="diesel_input", step=0.01, format="%.2f", label_visibility="collapsed")
@@ -486,6 +487,7 @@ def main():
                 fp = load_json(DATA_DIR / "ptt_fuel_prices.json")
                 fp["prices"][d.isoformat()] = shown_price
                 save_json(DATA_DIR / "ptt_fuel_prices.json", fp)
+                st.session_state.pop("_fuel_prices_df", None)
                 st.success(f"✅ Saved {d.isoformat()} → {shown_price:.2f}")
                 st.rerun()
         with col_b:
@@ -507,6 +509,10 @@ def main():
                 if fp is None:
                     st.error("PTT API returned no data for this month")
                 else:
+                    st.session_state.pop("_fuel_prices_df", None)
+                    new_p = lookup_fuel_price(fp["prices"], d)
+                    if new_p is not None:
+                        st.session_state.diesel_input = new_p
                     st.success(f"✅ Fetched — {added} new entries added")
                     st.rerun()
 
