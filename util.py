@@ -19,17 +19,21 @@ def _fetch_ptt_month(year_be, month):
     import requests as req
     import calendar
     from datetime import date
-    resp = req.post(PTT_AJAX_URL, data={
-        "action": "fetch_oil_prices",
-        "province": "กรุงเทพมหานคร",
-        "month": str(month),
-        "year": str(year_be),
-    }, headers={
-        "X-Requested-With": "XMLHttpRequest",
-    }, timeout=10)
-    result = resp.json()
+    try:
+        resp = req.post(PTT_AJAX_URL, data={
+            "action": "fetch_oil_prices",
+            "province": "กรุงเทพมหานคร",
+            "month": str(month),
+            "year": str(year_be),
+        }, headers={
+            "X-Requested-With": "XMLHttpRequest",
+        }, timeout=10)
+        result = resp.json()
+    except Exception:
+        return None, None
+
     if not result.get("success"):
-        return None
+        return None, None
 
     year_ce = year_be - 543
     raw_events = {}
@@ -50,7 +54,7 @@ def _fetch_ptt_month(year_be, month):
                 continue
 
     if not raw_events:
-        return None
+        return None, None
 
     num_days = calendar.monthrange(year_ce, month)[1]
     filled_prices = {}
@@ -64,19 +68,54 @@ def _fetch_ptt_month(year_be, month):
             filled_prices[iso_str] = last_price
 
     filled_prices.update(raw_events)
-    return filled_prices
+    return filled_prices, raw_events
 
 
 def fetch_month_from_ptt(year_be, month):
-    prices = _fetch_ptt_month(year_be, month)
-    if not prices:
+    prices_tuple = _fetch_ptt_month(year_be, month)
+    if not prices_tuple or not prices_tuple[0]:
         return None, 0
+    prices, raw_events = prices_tuple
     fp = load_json(DATA_DIR / "ptt_fuel_prices.json")
-    before = len(fp["prices"])
+    before = len(fp.get("prices", {}))
+    if "prices" not in fp:
+        fp["prices"] = {}
     fp["prices"].update(prices)
+
+    actual_dates = set(fp.get("actual_dates", []))
+    if raw_events:
+        actual_dates.update(raw_events.keys())
+    fp["actual_dates"] = sorted(list(actual_dates))
+
     save_json(DATA_DIR / "ptt_fuel_prices.json", fp)
     added = len(fp["prices"]) - before
     return fp, added
+
+
+def ensure_fuel_price_auto(d):
+    """
+    Checks if date d has an actual recorded fuel price in ptt_fuel_prices.json.
+    If missing or forward-filled from an older date (and d <= date.today()),
+    auto-fetches from PTT API to overwrite/update with the actual official price.
+    """
+    from datetime import date as dt_date
+    iso_str = d.isoformat() if hasattr(d, "isoformat") else str(d)[:10]
+    fp = load_json(DATA_DIR / "ptt_fuel_prices.json")
+    prices = fp.get("prices", {})
+    actual_dates = set(fp.get("actual_dates", []))
+
+    today = dt_date.today()
+    needs_fetch = (iso_str not in prices) or (iso_str not in actual_dates and d <= today)
+
+    if needs_fetch:
+        year_be = d.year + 543
+        updated_fp, added = fetch_month_from_ptt(year_be, d.month)
+        if updated_fp:
+            fp = updated_fp
+            prices = fp.get("prices", {})
+            actual_dates = set(fp.get("actual_dates", []))
+
+    return prices.get(iso_str), iso_str in actual_dates
 
 
 def load_json(path):

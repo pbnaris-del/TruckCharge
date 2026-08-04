@@ -3,7 +3,7 @@ import streamlit as st
 from util import (
     find_tier, find_band, format_thb, match_kiswire_customer,
     load_json, save_json, DATA_DIR, authenticate,
-    fetch_month_from_ptt,
+    fetch_month_from_ptt, ensure_fuel_price_auto,
 )
 
 st.set_page_config(
@@ -360,8 +360,7 @@ def build_na_card(msg):
 
 def on_date_change():
     d = st.session_state.date_input
-    fp = load_json(DATA_DIR / "ptt_fuel_prices.json")["prices"]
-    price = lookup_fuel_price(fp, d)
+    price, _ = ensure_fuel_price_auto(d)
     if price is not None:
         st.session_state.diesel_input = price
 
@@ -475,7 +474,7 @@ def main():
 
     today = date.today()
     if "diesel_input" not in st.session_state:
-        price = lookup_fuel_price(fuel_prices, today)
+        price, _ = ensure_fuel_price_auto(today)
         st.session_state.diesel_input = price or 34.94
 
     d = st.sidebar.date_input(t["date"], value=today, key="date_input",
@@ -485,11 +484,15 @@ def main():
                                       key="diesel_input", step=0.01, format="%.2f", label_visibility="collapsed")
 
     json_ref = lookup_fuel_price(fuel_prices, d)
+    fp_raw = load_json(DATA_DIR / "ptt_fuel_prices.json")
+    is_actual = d.isoformat() in fp_raw.get("actual_dates", [])
     if json_ref is not None:
+        badge_label = "OFFICIAL" if is_actual else "FORWARD-FILLED"
+        badge_cls = "live" if is_actual else "json"
         st.sidebar.markdown(
             f'<div style="font-size:0.75rem;color:var(--text-secondary)">'
             f'PTT on {d.isoformat()}: <strong>{json_ref:.2f}</strong> THB/L'
-            f'<span class="price-source-badge json">JSON</span></div>',
+            f'<span class="price-source-badge {badge_cls}">{badge_label}</span></div>',
             unsafe_allow_html=True,
         )
     else:
