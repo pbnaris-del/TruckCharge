@@ -246,7 +246,7 @@ if sel_route is not None:
 
 # ── SECTION: IMPORT RATE SHEET ──
 st.header("📥 Import Rate Sheet (PDF / Excel)")
-st.caption("Upload vendor rate sheets in Excel (.xlsx, .xls, .csv) or PDF (.pdf) format to parse and import price tiers into Master Data.")
+st.caption("Upload vendor rate sheets in Excel (.xlsx, .xls, .csv) or PDF (.pdf) format to parse, edit, and import price tiers into Master Data.")
 with st.container(border=True):
     uploaded_file = st.file_uploader(
         "Choose a Rate Sheet file",
@@ -264,7 +264,8 @@ with st.container(border=True):
             st.success(f"✅ Successfully extracted **{len(extracted_records)}** rate tier entries from **{uploaded_file.name}**!")
 
             ext_df = pd.DataFrame(extracted_records)
-            st.markdown("##### Extracted Rate Tiers Preview")
+            st.markdown("##### ✏️ Edit & Fix Extracted Data")
+            st.caption("You can edit any values below (Route, Min, Max, Rate) to fix errors before importing.")
             edited_ext_df = st.data_editor(
                 ext_df,
                 column_config={
@@ -275,35 +276,65 @@ with st.container(border=True):
                 },
                 hide_index=True,
                 use_container_width=True,
+                num_rows="dynamic",
                 key="ext_rates_editor"
             )
 
-            st.markdown("##### Import Destination")
+            st.markdown("##### 🎯 Select Target Vendor & Route for Update")
             ic1, ic2 = st.columns([1, 1])
             with ic1:
-                target_vendor = st.selectbox("Target Vendor", vendor_names, key="import_target_vendor")
+                vendor_opts = ["➕ Create New Vendor..."] + vendor_names
+                sel_imp_vendor_opt = st.selectbox("Target Vendor", vendor_opts, key="import_target_vendor")
+                if sel_imp_vendor_opt == "➕ Create New Vendor...":
+                    target_vendor = st.text_input("New Vendor Name", key="imp_new_v_name", placeholder="e.g. NEWCO").strip().upper()
+                else:
+                    target_vendor = sel_imp_vendor_opt
+
             with ic2:
-                target_routes = [r["display"] for r in vendors[target_vendor]["routes"]] if target_vendor in vendors else []
-                target_route = st.selectbox("Target Route", target_routes, key="import_target_route") if target_routes else st.text_input("New Route Name", key="import_target_route_new")
+                existing_routes = [r["display"] for r in vendors[target_vendor]["routes"]] if target_vendor in vendors else []
+                route_opts = ["➕ Create New Route..."] + existing_routes
+                sel_imp_route_opt = st.selectbox("Target Route", route_opts, key="import_target_route")
+                if sel_imp_route_opt == "➕ Create New Route...":
+                    target_route = st.text_input("New Route Name", key="imp_new_r_name", placeholder="e.g. BKK → LCB").strip()
+                else:
+                    target_route = sel_imp_route_opt
 
             if st.button("📥 Apply & Save Imported Tiers to Master Data", type="primary", use_container_width=True):
-                bands_to_save = []
-                for r in edited_ext_df.to_dict("records"):
-                    if pd.notna(r.get("min")) and pd.notna(r.get("max")) and pd.notna(r.get("rate")):
-                        bands_to_save.append({
-                            "min": float(r["min"]),
-                            "max": float(r["max"]),
-                            "rate": float(r["rate"])
-                        })
-                if not target_route:
-                    st.error("Please specify a target route.")
-                elif not bands_to_save:
-                    st.error("No valid price tiers to save.")
+                if not target_vendor:
+                    st.error("Please select or enter a Target Vendor.")
+                elif not target_route:
+                    st.error("Please select or enter a Target Route.")
                 else:
-                    _save_bands_to_master(target_vendor, target_route, bands_to_save, username=username)
-                    st.session_state.pop(f"master_bands_{target_vendor}::{target_route}", None)
-                    st.session_state["_admin_msg"] = (f"✅ Imported {len(bands_to_save)} rate tiers for Vendor '{target_vendor}' → Route '{target_route}'", "success")
-                    st.rerun()
+                    if target_vendor not in vendors:
+                        _save_vendor_to_master(target_vendor, {"company": target_vendor, "notes": "", "routes": []}, username=username)
+
+                    master_latest = _load_master()
+                    v_routes = master_latest["vendors"].get(target_vendor, {}).get("routes", [])
+                    r_exists = any(r["display"] == target_route for r in v_routes)
+
+                    bands_to_save = []
+                    for r in edited_ext_df.to_dict("records"):
+                        if pd.notna(r.get("min")) and pd.notna(r.get("max")) and pd.notna(r.get("rate")):
+                            bands_to_save.append({
+                                "min": float(r["min"]),
+                                "max": float(r["max"]),
+                                "rate": float(r["rate"])
+                            })
+
+                    if not bands_to_save:
+                        st.error("No valid price tiers to save.")
+                    else:
+                        if not r_exists:
+                            rid = target_route.lower().replace(" ", "_").replace("→", "to")
+                            rid = "".join(c if c.isalnum() or c == "_" else "_" for c in rid)
+                            new_route_obj = {"id": rid, "display": target_route, "is_et_route": False, "bands": bands_to_save}
+                            _save_route_to_master(target_vendor, new_route_obj, append=True, username=username)
+                        else:
+                            _save_bands_to_master(target_vendor, target_route, bands_to_save, username=username)
+
+                        st.session_state.pop(f"master_bands_{target_vendor}::{target_route}", None)
+                        st.session_state["_admin_msg"] = (f"✅ Imported {len(bands_to_save)} rate tiers into Vendor '{target_vendor}' → Route '{target_route}'", "success")
+                        st.rerun()
 
 # ── SECTION: FUEL PRICES ──
 st.header("⛽ Fuel Prices")
