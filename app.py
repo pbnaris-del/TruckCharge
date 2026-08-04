@@ -366,6 +366,22 @@ def on_date_change():
         st.session_state.diesel_input = price
 
 
+def on_fetch_ptt_click():
+    fetch_year = st.session_state.get("fetch_year", date.today().year + 543)
+    fetch_month = st.session_state.get("fetch_month", 1)
+    d = st.session_state.get("date_input", date.today())
+
+    fp, added = fetch_month_from_ptt(int(fetch_year), int(fetch_month))
+    if fp is None:
+        st.session_state["_fetch_result"] = ("error", "PTT API returned no data for this month")
+    else:
+        st.session_state.pop("_fuel_prices_df", None)
+        new_p = lookup_fuel_price(fp["prices"], d)
+        if new_p is not None:
+            st.session_state.diesel_input = new_p
+        st.session_state["_fetch_result"] = ("success", f"✅ Fetched — {added} new entries added")
+
+
 def main():
     inject_premium_css()
 
@@ -503,18 +519,15 @@ def main():
         fetch_month = st.sidebar.selectbox("Month", list(range(1, 13)),
                                            format_func=lambda m: f"{m:02d} ({months_th[m-1]})",
                                            key="fetch_month")
-        if st.sidebar.button("📡 Fetch from PTT", type="primary", use_container_width=True):
-            with st.spinner("Fetching..."):
-                fp, added = fetch_month_from_ptt(int(fetch_year), int(fetch_month))
-                if fp is None:
-                    st.error("PTT API returned no data for this month")
-                else:
-                    st.session_state.pop("_fuel_prices_df", None)
-                    new_p = lookup_fuel_price(fp["prices"], d)
-                    if new_p is not None:
-                        st.session_state.diesel_input = new_p
-                    st.success(f"✅ Fetched — {added} new entries added")
-                    st.rerun()
+        st.sidebar.button("📡 Fetch from PTT", type="primary", use_container_width=True,
+                          on_click=on_fetch_ptt_click)
+
+        if "_fetch_result" in st.session_state:
+            res_type, res_msg = st.session_state.pop("_fetch_result")
+            if res_type == "error":
+                st.sidebar.error(res_msg)
+            else:
+                st.sidebar.success(res_msg)
 
     # ── Sidebar: Invoice ──
     st.sidebar.markdown(f'<div class="sidebar-section"><div class="sidebar-section-title"><span class="sec-icon">🧾</span>{t["inv_section"]}</div></div>', unsafe_allow_html=True)
