@@ -6,6 +6,7 @@ from util import (
     _delete_vendor_from_master, _save_route_to_master,
     _delete_route_from_master, _save_bands_to_master,
     get_activity_log, fetch_month_from_ptt,
+    parse_rate_sheet_file,
 )
 
 st.set_page_config(page_title="Master Data Management", page_icon="🛠️", layout="wide")
@@ -242,6 +243,67 @@ if sel_route is not None:
         _save_bands_to_master(sel_vendor, sel_route_display, edited_bands, username=username)
         st.session_state["_admin_msg"] = ("✅ All changes saved to master file", "success")
         st.rerun()
+
+# ── SECTION: IMPORT RATE SHEET ──
+st.header("📥 Import Rate Sheet (PDF / Excel)")
+st.caption("Upload vendor rate sheets in Excel (.xlsx, .xls, .csv) or PDF (.pdf) format to parse and import price tiers into Master Data.")
+with st.container(border=True):
+    uploaded_file = st.file_uploader(
+        "Choose a Rate Sheet file",
+        type=["xlsx", "xls", "csv", "pdf"],
+        key="rate_sheet_file_uploader",
+        help="Upload PDF or Excel files containing fuel price tiers and freight rates."
+    )
+    if uploaded_file is not None:
+        with st.spinner("Parsing rate sheet..."):
+            extracted_records = parse_rate_sheet_file(uploaded_file, uploaded_file.name)
+
+        if not extracted_records:
+            st.warning("⚠️ No valid rate tiers or price bands could be automatically extracted from this file. Please verify the file contents or column formatting.")
+        else:
+            st.success(f"✅ Successfully extracted **{len(extracted_records)}** rate tier entries from **{uploaded_file.name}**!")
+
+            ext_df = pd.DataFrame(extracted_records)
+            st.markdown("##### Extracted Rate Tiers Preview")
+            edited_ext_df = st.data_editor(
+                ext_df,
+                column_config={
+                    "route_display": st.column_config.TextColumn("Route / Destination"),
+                    "min": st.column_config.NumberColumn("Min (THB/L)", format="%.2f"),
+                    "max": st.column_config.NumberColumn("Max (THB/L)", format="%.2f"),
+                    "rate": st.column_config.NumberColumn("Rate (THB)", format="%.2f"),
+                },
+                hide_index=True,
+                use_container_width=True,
+                key="ext_rates_editor"
+            )
+
+            st.markdown("##### Import Destination")
+            ic1, ic2 = st.columns([1, 1])
+            with ic1:
+                target_vendor = st.selectbox("Target Vendor", vendor_names, key="import_target_vendor")
+            with ic2:
+                target_routes = [r["display"] for r in vendors[target_vendor]["routes"]] if target_vendor in vendors else []
+                target_route = st.selectbox("Target Route", target_routes, key="import_target_route") if target_routes else st.text_input("New Route Name", key="import_target_route_new")
+
+            if st.button("📥 Apply & Save Imported Tiers to Master Data", type="primary", use_container_width=True):
+                bands_to_save = []
+                for r in edited_ext_df.to_dict("records"):
+                    if pd.notna(r.get("min")) and pd.notna(r.get("max")) and pd.notna(r.get("rate")):
+                        bands_to_save.append({
+                            "min": float(r["min"]),
+                            "max": float(r["max"]),
+                            "rate": float(r["rate"])
+                        })
+                if not target_route:
+                    st.error("Please specify a target route.")
+                elif not bands_to_save:
+                    st.error("No valid price tiers to save.")
+                else:
+                    _save_bands_to_master(target_vendor, target_route, bands_to_save, username=username)
+                    st.session_state.pop(f"master_bands_{target_vendor}::{target_route}", None)
+                    st.session_state["_admin_msg"] = (f"✅ Imported {len(bands_to_save)} rate tiers for Vendor '{target_vendor}' → Route '{target_route}'", "success")
+                    st.rerun()
 
 # ── SECTION: FUEL PRICES ──
 st.header("⛽ Fuel Prices")

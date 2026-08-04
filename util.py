@@ -342,3 +342,153 @@ def _save_bands_to_master(vendor_name, route_display, bands, username="system"):
             break
     _save_master(master)
     log_activity(username, "bands_saved", f"Price tiers for {vendor_name} → {route_display}")
+
+
+def parse_rate_sheet_file(file_obj, filename):
+    import re
+    import pandas as pd
+
+    fname = filename.lower()
+    records = []
+
+    try:
+        if fname.endswith(".csv"):
+            df = pd.read_csv(file_obj)
+            records = _parse_dataframe_rates(df)
+        elif fname.endswith((".xlsx", ".xls")):
+            xl = pd.ExcelFile(file_obj)
+            for sheet_name in xl.sheet_names:
+                df = xl.parse(sheet_name)
+                sheet_records = _parse_dataframe_rates(df)
+                for r in sheet_records:
+                    if not r.get("vendor"):
+                        r["vendor"] = sheet_name
+                records.extend(sheet_records)
+        elif fname.endswith(".pdf"):
+            try:
+                import pdfplumber
+                with pdfplumber.open(file_obj) as pdf:
+                    for page in pdf.pages:
+                        tables = page.extract_tables()
+                        for table in tables:
+                            if not table or len(table) < 2:
+                                continue
+                            headers = [str(h or f"col_{i}").strip() for i, h in enumerate(table[0])]
+                            df = pd.DataFrame(table[1:], columns=headers)
+                            records.extend(_parse_dataframe_rates(df))
+
+                        if not records:
+                            text = page.extract_text() or ""
+                            records.extend(_parse_text_rates(text))
+            except Exception:
+                pass
+    except Exception:
+        pass
+
+    return records
+
+
+def _parse_dataframe_rates(df):
+    import re
+    import pandas as pd
+    records = []
+    if df is None or df.empty:
+        return records
+
+    cols = [str(c).strip() for c in df.columns]
+    df.columns = cols
+
+    col_min, col_max, col_rate, col_route, col_range = None, None, None, None, None
+    for c in cols:
+        clower = c.lower()
+        if any(k in clower for k in ["route", "destination", "เส้นทาง", "ปลายทาง"]):
+            col_route = c
+        elif any(k in clower for k in ["range", "ช่วงน้ำมัน", "diesel price", "fuel range"]):
+            col_range = c
+        elif any(k in clower for k in ["min", "ขั้นต่ำ", "จาก"]):
+            col_min = c
+        elif any(k in clower for k in ["max", "ขั้นสูง", "ถึง"]):
+            col_max = c
+        elif any(k in clower for k in ["rate", "price", "cost", "charge", "ค่าขนส่ง", "ราคา"]):
+            col_rate = c
+
+    for idx, row in df.iterrows():
+        r_min, r_max, r_rate = None, None, None
+        route_name = str(row[col_route]).strip() if col_route and pd.notna(row[col_route]) else ""
+
+        if col_min and col_max and pd.notna(row[col_min]) and pd.notna(row[col_max]):
+            try:
+                r_min = float(str(row[col_min]).replace(",", ""))
+                r_max = float(str(row[col_max]).replace(",", ""))
+            except (ValueError, TypeError):
+                pass
+
+        if (r_min is None or r_max is None) and col_range and pd.notna(row[col_range]):
+            m = re.search(r'(\d+(?:\.\d+)?)\s*[-~–]\s*(\d+(?:\.\d+)?)', str(row[col_range]))
+            if m:
+                r_min, r_max = float(m.group(1)), float(m.group(2))
+
+        if col_rate and pd.notna(row[col_rate]):
+            clean_str = re.sub(r'[^\d.]', '', str(row[col_rate]).replace(",", ""))
+            try:
+                if clean_str:
+                    r_rate = float(clean_str)
+            except (ValueError, TypeError):
+                pass
+
+        if (r_min is None or r_rate is None):
+            row_str = " ".join([str(val) for val in row.values if pd.notna(val)])
+            m_range = re.search(r'(\d+(?:\.\d+)?)\s*[-~–]\s*(\d+(?:\.\d+)?)', row_str)
+            m_rate = re.findall(r'\b\d{1,3}(?:,\d{3})*(?:\.\d+)?\b|\b\d+(?:\.\d+)?\b', row_str)
+            if m_range and (r_min is None or r_max is None):
+                r_min, r_max = float(m_range.group(1)), float(m_range.group(2))
+            if m_rate and r_rate is None:
+                for num_str in reversed(m_rate):
+                    try:
+                        v = float(num_str.replace(",", ""))
+                        if v > 100 and v != r_min and v != r_max:
+                            r_rate = v
+                            break
+                    except ValueError:
+                        pass
+
+        if r_min is not None and r_max is not None and r_rate is not None:
+            records.append({
+                "route_display": route_name,
+                "min": r_min,
+                "max": r_max,
+                "rate": r_rate
+            })
+
+    return records
+
+
+def _parse_text_rates(text):
+    import re
+    records = []
+    lines = text.splitlines()
+    for line in lines:
+        m_range = re.search(r'(\d+(?:\.\d+)?)\s*[-~–]\s*(\d+(?:\.\d+)?)', line)
+        if not m_range:
+            continue
+        r_min, r_max = float(m_range.group(1)), float(m_range.group(2))
+
+        nums = re.findall(r'\b\d{1,3}(?:,\d{3})*(?:\.\d+)?\b|\b\d+(?:\.\d+)?\b', line)
+        r_rate = None
+        for n in reversed(nums):
+            try:
+                v = float(n.replace(",", ""))
+                if v > 100 and v != r_min and v != r_max:
+                    r_rate = v
+                    break
+            except ValueError:
+                pass
+
+        if r_min is not None and r_max is not None and r_rate is not None:
+            records.append({
+                "route_display": "",
+                "min": r_min,
+                "max": r_max,
+                "rate": r_rate
+            })
+    return records
