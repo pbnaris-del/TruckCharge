@@ -434,15 +434,24 @@ def import_master_from_excel(file_obj, username="system"):
         return False, "Missing required columns in Excel. Headers must include 'Vendor', 'Route', and 'Rate (THB)'."
 
     master = _load_master()
+    import re
+    existing_vendors = master.get("vendors", {})
+    # Map normalized vendor names to original case
+    norm_vendor_map = {re.sub(r'\s+', ' ', v).strip().upper(): v for v in existing_vendors.keys()}
+
     new_vendors = {}
 
     for idx, row in df.iterrows():
-        vname = str(row[col_map["vendor"]]).strip().upper() if pd.notna(row[col_map["vendor"]]) else ""
-        if not vname or vname.startswith("—") or vname == "NAN":
+        raw_v = str(row[col_map["vendor"]]) if pd.notna(row[col_map["vendor"]]) else ""
+        norm_v = re.sub(r'\s+', ' ', raw_v).strip().upper()
+        if not norm_v or norm_v.startswith("—") or norm_v == "NAN":
             continue
 
-        company = str(row[col_map["company"]]).strip() if "company" in col_map and pd.notna(row[col_map["company"]]) else vname
-        rdisplay = str(row[col_map["route"]]).strip() if pd.notna(row[col_map["route"]]) else ""
+        vname = norm_vendor_map.get(norm_v, norm_v)
+
+        company = re.sub(r'\s+', ' ', str(row[col_map["company"]])).strip() if "company" in col_map and pd.notna(row[col_map["company"]]) else vname
+        raw_r = str(row[col_map["route"]]) if pd.notna(row[col_map["route"]]) else ""
+        clean_r = re.sub(r'\s+', ' ', raw_r).strip()
 
         try:
             rmin = float(row[col_map["min"]]) if "min" in col_map and pd.notna(row[col_map["min"]]) else 0.0
@@ -469,13 +478,21 @@ def import_master_from_excel(file_obj, username="system"):
             et_id = str(row[col_map["et_id"]]).strip()
 
         if vname not in new_vendors:
+            old_routes = existing_vendors.get(vname, {}).get("routes", [])
+            # Map normalized route display to original display string
+            norm_route_map = {re.sub(r'\s+', ' ', r["display"]).strip().lower(): r["display"] for r in old_routes}
             new_vendors[vname] = {
                 "company": company,
-                "notes": master.get("vendors", {}).get(vname, {}).get("notes", ""),
+                "notes": existing_vendors.get(vname, {}).get("notes", ""),
+                "norm_route_map": norm_route_map,
                 "routes": {}
             }
 
-        if rdisplay:
+        if clean_r:
+            norm_r_key = clean_r.lower()
+            norm_route_map = new_vendors[vname]["norm_route_map"]
+            rdisplay = norm_route_map.get(norm_r_key, clean_r)
+
             rid = rdisplay.lower().replace(" ", "_").replace("→", "to")
             rid = "".join(c if c.isalnum() or c == "_" else "_" for c in rid)
 
