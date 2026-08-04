@@ -6,8 +6,8 @@ from util import (
     _delete_vendor_from_master, _save_route_to_master,
     _delete_route_from_master, _save_bands_to_master,
     get_activity_log, fetch_month_from_ptt,
-    parse_rate_sheet_file, export_master_to_excel,
-    import_master_from_excel,
+    export_master_to_excel, import_master_from_excel,
+    check_duplicate_rates, deduplicate_master_rates,
 )
 
 st.set_page_config(page_title="Master Data Management", page_icon="🛠️", layout="wide")
@@ -120,6 +120,24 @@ with st.container(border=True):
                         st.rerun()
                     else:
                         st.error(msg)
+
+    st.markdown("---")
+    st.markdown("##### 🔍 Check & Clean Duplicate Rates")
+    st.caption("Scan Master Data for any duplicate or overlapping price tiers across all vendors and routes.")
+    dup_issues = check_duplicate_rates(master)
+    if not dup_issues:
+        st.success("✅ No duplicate or overlapping rate ranges found in Master Data!")
+    else:
+        st.warning(f"⚠️ Found **{len(dup_issues)}** duplicate or overlapping rate entries:")
+        dup_df = pd.DataFrame(dup_issues)
+        st.dataframe(dup_df[["vendor", "route", "type", "detail"]], use_container_width=True, hide_index=True)
+        if st.button("🧹 Auto-Clean & Deduplicate Master Rates", type="primary", use_container_width=True):
+            cleaned_cnt = deduplicate_master_rates(master, username=username)
+            st.session_state["_admin_msg"] = (f"✅ Cleaned Master Data! Removed {cleaned_cnt} duplicate price tiers.", "success")
+            for k in list(st.session_state.keys()):
+                if k.startswith("master_bands_"):
+                    del st.session_state[k]
+            st.rerun()
 
 # ── SECTION: VENDOR ──
 st.header("Vendors")
@@ -283,98 +301,6 @@ if sel_route is not None:
         _save_bands_to_master(sel_vendor, sel_route_display, edited_bands, username=username)
         st.session_state["_admin_msg"] = ("✅ All changes saved to master file", "success")
         st.rerun()
-
-# ── SECTION: IMPORT RATE SHEET ──
-st.header("📥 Import Rate Sheet (PDF / Excel)")
-st.caption("Upload vendor rate sheets in Excel (.xlsx, .xls, .csv) or PDF (.pdf) format to parse, edit, and import price tiers into Master Data.")
-with st.container(border=True):
-    uploaded_file = st.file_uploader(
-        "Choose a Rate Sheet file",
-        type=["xlsx", "xls", "csv", "pdf"],
-        key="rate_sheet_file_uploader",
-        help="Upload PDF or Excel files containing fuel price tiers and freight rates."
-    )
-    if uploaded_file is not None:
-        with st.spinner("Parsing rate sheet..."):
-            extracted_records = parse_rate_sheet_file(uploaded_file, uploaded_file.name)
-
-        if not extracted_records:
-            st.warning("⚠️ No valid rate tiers or price bands could be automatically extracted from this file. Please verify the file contents or column formatting.")
-        else:
-            st.success(f"✅ Successfully extracted **{len(extracted_records)}** rate tier entries from **{uploaded_file.name}**!")
-
-            ext_df = pd.DataFrame(extracted_records)
-            st.markdown("##### ✏️ Edit & Fix Extracted Data")
-            st.caption("You can edit any values below (Route, Min, Max, Rate) to fix errors before importing.")
-            edited_ext_df = st.data_editor(
-                ext_df,
-                column_config={
-                    "route_display": st.column_config.TextColumn("Route / Destination"),
-                    "min": st.column_config.NumberColumn("Min (THB/L)", format="%.2f"),
-                    "max": st.column_config.NumberColumn("Max (THB/L)", format="%.2f"),
-                    "rate": st.column_config.NumberColumn("Rate (THB)", format="%.2f"),
-                },
-                hide_index=True,
-                use_container_width=True,
-                num_rows="dynamic",
-                key="ext_rates_editor"
-            )
-
-            st.markdown("##### 🎯 Select Target Vendor & Route for Update")
-            ic1, ic2 = st.columns([1, 1])
-            with ic1:
-                vendor_opts = ["➕ Create New Vendor..."] + vendor_names
-                sel_imp_vendor_opt = st.selectbox("Target Vendor", vendor_opts, key="import_target_vendor")
-                if sel_imp_vendor_opt == "➕ Create New Vendor...":
-                    target_vendor = st.text_input("New Vendor Name", key="imp_new_v_name", placeholder="e.g. NEWCO").strip().upper()
-                else:
-                    target_vendor = sel_imp_vendor_opt
-
-            with ic2:
-                existing_routes = [r["display"] for r in vendors[target_vendor]["routes"]] if target_vendor in vendors else []
-                route_opts = ["➕ Create New Route..."] + existing_routes
-                sel_imp_route_opt = st.selectbox("Target Route", route_opts, key="import_target_route")
-                if sel_imp_route_opt == "➕ Create New Route...":
-                    target_route = st.text_input("New Route Name", key="imp_new_r_name", placeholder="e.g. BKK → LCB").strip()
-                else:
-                    target_route = sel_imp_route_opt
-
-            if st.button("📥 Apply & Save Imported Tiers to Master Data", type="primary", use_container_width=True):
-                if not target_vendor:
-                    st.error("Please select or enter a Target Vendor.")
-                elif not target_route:
-                    st.error("Please select or enter a Target Route.")
-                else:
-                    if target_vendor not in vendors:
-                        _save_vendor_to_master(target_vendor, {"company": target_vendor, "notes": "", "routes": []}, username=username)
-
-                    master_latest = _load_master()
-                    v_routes = master_latest["vendors"].get(target_vendor, {}).get("routes", [])
-                    r_exists = any(r["display"] == target_route for r in v_routes)
-
-                    bands_to_save = []
-                    for r in edited_ext_df.to_dict("records"):
-                        if pd.notna(r.get("min")) and pd.notna(r.get("max")) and pd.notna(r.get("rate")):
-                            bands_to_save.append({
-                                "min": float(r["min"]),
-                                "max": float(r["max"]),
-                                "rate": float(r["rate"])
-                            })
-
-                    if not bands_to_save:
-                        st.error("No valid price tiers to save.")
-                    else:
-                        if not r_exists:
-                            rid = target_route.lower().replace(" ", "_").replace("→", "to")
-                            rid = "".join(c if c.isalnum() or c == "_" else "_" for c in rid)
-                            new_route_obj = {"id": rid, "display": target_route, "is_et_route": False, "bands": bands_to_save}
-                            _save_route_to_master(target_vendor, new_route_obj, append=True, username=username)
-                        else:
-                            _save_bands_to_master(target_vendor, target_route, bands_to_save, username=username)
-
-                        st.session_state.pop(f"master_bands_{target_vendor}::{target_route}", None)
-                        st.session_state["_admin_msg"] = (f"✅ Imported {len(bands_to_save)} rate tiers into Vendor '{target_vendor}' → Route '{target_route}'", "success")
-                        st.rerun()
 
 # ── SECTION: FUEL PRICES ──
 st.header("⛽ Fuel Prices")

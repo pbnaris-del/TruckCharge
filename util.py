@@ -517,151 +517,67 @@ def import_master_from_excel(file_obj, username="system"):
     return True, f"✅ Master Data updated! Imported {len(final_vendors)} vendors, {total_routes} routes, and {total_bands} price tiers."
 
 
-def parse_rate_sheet_file(file_obj, filename):
-    import re
-    import pandas as pd
+def check_duplicate_rates(master):
+    """
+    Scans quotation_master.json for duplicate or overlapping price tiers within each route.
+    Returns a list of issue dictionaries.
+    """
+    issues = []
+    vendors = master.get("vendors", {})
+    for vname, vdata in vendors.items():
+        for r in vdata.get("routes", []):
+            rdisp = r.get("display", "")
+            bands = r.get("bands", [])
+            seen_ranges = {}
+            for i, b in enumerate(bands):
+                rmin, rmax, rrate = b.get("min"), b.get("max"), b.get("rate")
+                pair = (rmin, rmax)
+                if pair in seen_ranges:
+                    prev_rate = seen_ranges[pair]["rate"]
+                    issues.append({
+                        "vendor": vname,
+                        "route": rdisp,
+                        "type": "exact_duplicate",
+                        "detail": f"Duplicate range [{rmin:.2f} - {rmax:.2f}] THB/L with rates {prev_rate:,.2f} and {rrate:,.2f} THB"
+                    })
+                else:
+                    seen_ranges[pair] = {"rate": rrate, "index": i}
 
-    fname = filename.lower()
-    records = []
-
-    try:
-        if fname.endswith(".csv"):
-            df = pd.read_csv(file_obj)
-            records = _parse_dataframe_rates(df)
-        elif fname.endswith((".xlsx", ".xls")):
-            xl = pd.ExcelFile(file_obj)
-            for sheet_name in xl.sheet_names:
-                df = xl.parse(sheet_name)
-                sheet_records = _parse_dataframe_rates(df)
-                for r in sheet_records:
-                    if not r.get("vendor"):
-                        r["vendor"] = sheet_name
-                records.extend(sheet_records)
-        elif fname.endswith(".pdf"):
-            try:
-                import pdfplumber
-                with pdfplumber.open(file_obj) as pdf:
-                    for page in pdf.pages:
-                        tables = page.extract_tables()
-                        for table in tables:
-                            if not table or len(table) < 2:
-                                continue
-                            headers = [str(h or f"col_{i}").strip() for i, h in enumerate(table[0])]
-                            df = pd.DataFrame(table[1:], columns=headers)
-                            records.extend(_parse_dataframe_rates(df))
-
-                        if not records:
-                            text = page.extract_text() or ""
-                            records.extend(_parse_text_rates(text))
-            except Exception:
-                pass
-    except Exception:
-        pass
-
-    return records
+            sorted_bands = sorted(bands, key=lambda x: (x.get("min", 0), x.get("max", 0)))
+            for j in range(len(sorted_bands) - 1):
+                b1 = sorted_bands[j]
+                b2 = sorted_bands[j + 1]
+                if b1.get("max", 0) > b2.get("min", 0) and (b1.get("min"), b1.get("max")) != (b2.get("min"), b2.get("max")):
+                    issues.append({
+                        "vendor": vname,
+                        "route": rdisp,
+                        "type": "overlapping_range",
+                        "detail": f"Overlapping ranges [{b1.get('min'):.2f} - {b1.get('max'):.2f}] and [{b2.get('min'):.2f} - {b2.get('max'):.2f}] THB/L"
+                    })
+    return issues
 
 
-def _parse_dataframe_rates(df):
-    import re
-    import pandas as pd
-    records = []
-    if df is None or df.empty:
-        return records
+def deduplicate_master_rates(master, username="system"):
+    """
+    Removes exact duplicate ranges within each route, keeping the last recorded rate.
+    """
+    vendors = master.get("vendors", {})
+    cleaned_count = 0
+    for vname, vdata in vendors.items():
+        for r in vdata.get("routes", []):
+            bands = r.get("bands", [])
+            unique_bands = {}
+            for b in bands:
+                pair = (float(b.get("min", 0)), float(b.get("max", 0)))
+                unique_bands[pair] = float(b.get("rate", 0))
 
-    cols = [str(c).strip() for c in df.columns]
-    df.columns = cols
+            if len(unique_bands) < len(bands):
+                cleaned_count += (len(bands) - len(unique_bands))
+                new_bands = [{"min": p[0], "max": p[1], "rate": r} for p, r in sorted(unique_bands.items(), key=lambda x: x[0][0])]
+                r["bands"] = new_bands
 
-    col_min, col_max, col_rate, col_route, col_range = None, None, None, None, None
-    for c in cols:
-        clower = c.lower()
-        if any(k in clower for k in ["route", "destination", "เส้นทาง", "ปลายทาง"]):
-            col_route = c
-        elif any(k in clower for k in ["range", "ช่วงน้ำมัน", "diesel price", "fuel range"]):
-            col_range = c
-        elif any(k in clower for k in ["min", "ขั้นต่ำ", "จาก"]):
-            col_min = c
-        elif any(k in clower for k in ["max", "ขั้นสูง", "ถึง"]):
-            col_max = c
-        elif any(k in clower for k in ["rate", "price", "cost", "charge", "ค่าขนส่ง", "ราคา"]):
-            col_rate = c
+    if cleaned_count > 0:
+        _save_master(master)
+        log_activity(username, "rates_deduplicated", f"Removed {cleaned_count} duplicate price tiers")
 
-    for idx, row in df.iterrows():
-        r_min, r_max, r_rate = None, None, None
-        route_name = str(row[col_route]).strip() if col_route and pd.notna(row[col_route]) else ""
-
-        if col_min and col_max and pd.notna(row[col_min]) and pd.notna(row[col_max]):
-            try:
-                r_min = float(str(row[col_min]).replace(",", ""))
-                r_max = float(str(row[col_max]).replace(",", ""))
-            except (ValueError, TypeError):
-                pass
-
-        if (r_min is None or r_max is None) and col_range and pd.notna(row[col_range]):
-            m = re.search(r'(\d+(?:\.\d+)?)\s*[-~–]\s*(\d+(?:\.\d+)?)', str(row[col_range]))
-            if m:
-                r_min, r_max = float(m.group(1)), float(m.group(2))
-
-        if col_rate and pd.notna(row[col_rate]):
-            clean_str = re.sub(r'[^\d.]', '', str(row[col_rate]).replace(",", ""))
-            try:
-                if clean_str:
-                    r_rate = float(clean_str)
-            except (ValueError, TypeError):
-                pass
-
-        if (r_min is None or r_rate is None):
-            row_str = " ".join([str(val) for val in row.values if pd.notna(val)])
-            m_range = re.search(r'(\d+(?:\.\d+)?)\s*[-~–]\s*(\d+(?:\.\d+)?)', row_str)
-            m_rate = re.findall(r'\b\d{1,3}(?:,\d{3})*(?:\.\d+)?\b|\b\d+(?:\.\d+)?\b', row_str)
-            if m_range and (r_min is None or r_max is None):
-                r_min, r_max = float(m_range.group(1)), float(m_range.group(2))
-            if m_rate and r_rate is None:
-                for num_str in reversed(m_rate):
-                    try:
-                        v = float(num_str.replace(",", ""))
-                        if v > 100 and v != r_min and v != r_max:
-                            r_rate = v
-                            break
-                    except ValueError:
-                        pass
-
-        if r_min is not None and r_max is not None and r_rate is not None:
-            records.append({
-                "route_display": route_name,
-                "min": r_min,
-                "max": r_max,
-                "rate": r_rate
-            })
-
-    return records
-
-
-def _parse_text_rates(text):
-    import re
-    records = []
-    lines = text.splitlines()
-    for line in lines:
-        m_range = re.search(r'(\d+(?:\.\d+)?)\s*[-~–]\s*(\d+(?:\.\d+)?)', line)
-        if not m_range:
-            continue
-        r_min, r_max = float(m_range.group(1)), float(m_range.group(2))
-
-        nums = re.findall(r'\b\d{1,3}(?:,\d{3})*(?:\.\d+)?\b|\b\d+(?:\.\d+)?\b', line)
-        r_rate = None
-        for n in reversed(nums):
-            try:
-                v = float(n.replace(",", ""))
-                if v > 100 and v != r_min and v != r_max:
-                    r_rate = v
-                    break
-            except ValueError:
-                pass
-
-        if r_min is not None and r_max is not None and r_rate is not None:
-            records.append({
-                "route_display": "",
-                "min": r_min,
-                "max": r_max,
-                "rate": r_rate
-            })
-    return records
+    return cleaned_count
