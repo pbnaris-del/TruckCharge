@@ -485,16 +485,12 @@ def import_master_from_excel(file_obj, username="system"):
                     "id": rid,
                     "display": rdisplay,
                     "is_et_route": is_et,
-                    "bands": []
+                    "bands": {}
                 }
                 if et_id:
                     v_routes[rdisplay]["et_route_id"] = et_id
 
-            v_routes[rdisplay]["bands"].append({
-                "min": rmin,
-                "max": rmax,
-                "rate": rrate
-            })
+            v_routes[rdisplay]["bands"][(rmin, rmax)] = rrate
 
     final_vendors = {}
     total_routes = 0
@@ -502,9 +498,12 @@ def import_master_from_excel(file_obj, username="system"):
     for vname, vdict in new_vendors.items():
         route_list = []
         for rdisp, rdata in vdict["routes"].items():
+            bands_dict = rdata["bands"]
+            sorted_bands = [{"min": p[0], "max": p[1], "rate": r} for p, r in sorted(bands_dict.items(), key=lambda x: x[0][0])]
+            rdata["bands"] = sorted_bands
             route_list.append(rdata)
             total_routes += 1
-            total_bands += len(rdata["bands"])
+            total_bands += len(sorted_bands)
         final_vendors[vname] = {
             "company": vdict["company"],
             "notes": vdict["notes"],
