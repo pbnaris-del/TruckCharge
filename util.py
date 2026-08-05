@@ -444,6 +444,11 @@ def import_master_from_excel(file_obj, username="system"):
     existing_vendors = master.get("vendors", {})
     norm_vendor_map = {re.sub(r'\s+', ' ', v).strip().upper(): v for v in existing_vendors.keys()}
 
+    routes_cfg = load_json(DATA_DIR / "canonical_routes.json")
+    canon_routes = routes_cfg.get("et_routes", [])
+    canon_map = {re.sub(r'\s+', ' ', r["display"]).strip().lower(): r["id"] for r in canon_routes}
+    canon_ids = {r["id"] for r in canon_routes}
+
     new_vendors = {}
 
     for idx, row in df.iterrows():
@@ -474,8 +479,9 @@ def import_master_from_excel(file_obj, username="system"):
         except (ValueError, TypeError):
             rrate = 0.0
 
+        is_et_given = "is_et" in col_map and pd.notna(row[col_map["is_et"]])
         is_et = False
-        if "is_et" in col_map and pd.notna(row[col_map["is_et"]]):
+        if is_et_given:
             val_et = str(row[col_map["is_et"]]).strip().upper()
             is_et = val_et in ["TRUE", "1", "YES"]
 
@@ -486,30 +492,53 @@ def import_master_from_excel(file_obj, username="system"):
         if vname not in new_vendors:
             old_routes = existing_vendors.get(vname, {}).get("routes", [])
             id_route_map = {r.get("id"): r["display"] for r in old_routes if r.get("id")}
+            old_route_objs = {r.get("id"): r for r in old_routes if r.get("id")}
             norm_route_map = {re.sub(r'\s+', ' ', r["display"]).strip().lower(): r["display"] for r in old_routes}
+            norm_route_objs = {re.sub(r'\s+', ' ', r["display"]).strip().lower(): r for r in old_routes}
             new_vendors[vname] = {
                 "company": company,
                 "notes": existing_vendors.get(vname, {}).get("notes", ""),
                 "id_route_map": id_route_map,
+                "old_route_objs": old_route_objs,
                 "norm_route_map": norm_route_map,
+                "norm_route_objs": norm_route_objs,
                 "routes": {}
             }
 
         if clean_r or route_id:
             id_map = new_vendors[vname]["id_route_map"]
             norm_map = new_vendors[vname]["norm_route_map"]
+            old_objs_id = new_vendors[vname]["old_route_objs"]
+            old_objs_norm = new_vendors[vname]["norm_route_objs"]
 
+            old_r_obj = None
             if route_id and route_id in id_map:
                 rdisplay = clean_r or id_map[route_id]
                 rid = route_id
+                old_r_obj = old_objs_id.get(route_id)
             elif clean_r.lower() in norm_map:
                 rdisplay = norm_map[clean_r.lower()]
                 rid = route_id or rdisplay.lower().replace(" ", "_").replace("→", "to")
                 rid = "".join(c if c.isalnum() or c == "_" else "_" for c in rid)
+                old_r_obj = old_objs_norm.get(clean_r.lower())
             else:
                 rdisplay = clean_r
                 rid = route_id or rdisplay.lower().replace(" ", "_").replace("→", "to")
                 rid = "".join(c if c.isalnum() or c == "_" else "_" for c in rid)
+
+            # Preserve or auto-detect ET route ID for HQ pricing
+            if not et_id and old_r_obj:
+                et_id = old_r_obj.get("et_route_id", "")
+            if not et_id:
+                et_id = canon_map.get(rdisplay.lower(), canon_map.get(clean_r.lower(), ""))
+
+            if not is_et_given:
+                if old_r_obj and "is_et_route" in old_r_obj:
+                    is_et = old_r_obj["is_et_route"]
+                else:
+                    is_et = bool(et_id)
+            elif et_id and not is_et:
+                is_et = True
 
             v_routes = new_vendors[vname]["routes"]
             if rdisplay not in v_routes:
