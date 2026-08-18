@@ -228,6 +228,52 @@ def get_users():
     return data["users"]
 
 
+def save_user(username, password=None, role="admin", display=None, author="system"):
+    data = _ensure_users_file()
+    users = data.get("users", [])
+    display = display or username
+    found = False
+    for u in users:
+        if u["username"] == username:
+            found = True
+            u["role"] = role
+            u["display"] = display
+            if password:
+                u["password_hash"] = hashlib.sha256(password.encode()).hexdigest()
+            break
+    if not found:
+        pw = password if password else username
+        users.append({
+            "username": username,
+            "password_hash": hashlib.sha256(pw.encode()).hexdigest(),
+            "role": role,
+            "display": display
+        })
+        log_activity(author, "user_created", f"Created user '{username}' ({role})")
+    else:
+        log_activity(author, "user_updated", f"Updated user '{username}' ({role})")
+    data["users"] = users
+    with open(USERS_FILE, "w", encoding="utf-8") as f:
+        json.dump(data, f, indent=2, ensure_ascii=False)
+    return True
+
+
+def delete_user(username, author="system"):
+    data = _ensure_users_file()
+    users = data.get("users", [])
+    new_users = [u for u in users if u["username"] != username]
+    if len(new_users) == len(users):
+        return False, "User not found"
+    if len(new_users) == 0:
+        return False, "Cannot delete the last remaining user"
+    data["users"] = new_users
+    with open(USERS_FILE, "w", encoding="utf-8") as f:
+        json.dump(data, f, indent=2, ensure_ascii=False)
+    log_activity(author, "user_deleted", f"Deleted user '{username}'")
+    return True, "User deleted successfully"
+
+
+
 # ── Enterprise: Audit Log ──
 
 def log_activity(username, action, details=""):

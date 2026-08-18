@@ -5,9 +5,10 @@ from util import (
     _load_master, _save_vendor_to_master,
     _delete_vendor_from_master, _save_route_to_master,
     _delete_route_from_master, _save_bands_to_master,
-    get_activity_log, fetch_month_from_ptt,
+    get_activity_log, log_activity, fetch_month_from_ptt,
     export_master_to_excel, import_master_from_excel,
     check_duplicate_rates, deduplicate_master_rates,
+    get_users, save_user, delete_user,
 )
 
 st.set_page_config(page_title="Master Data Management", page_icon="🛠️", layout="wide")
@@ -24,6 +25,7 @@ if "user" not in st.session_state:
             u = authenticate(u_name, u_pass)
             if u:
                 st.session_state["user"] = u
+                log_activity(u["username"], "login", f"Signed in to Master Data as {u['display']}")
                 st.rerun()
             else:
                 st.error("Invalid username or password")
@@ -55,9 +57,10 @@ st.markdown(
 ac1, ac2 = st.columns([5, 1])
 with ac1:
     st.title("🛠️ Master Data Management")
-    st.caption("Add, edit, and delete vendors, routes, and price tiers.")
+    st.caption("Add, edit, and delete vendors, routes, price tiers, and user accounts.")
 with ac2:
     if st.button("🚪 Sign Out", use_container_width=True):
+        log_activity(user["username"], "logout", f"User '{user['display']}' signed out from Master Data")
         st.session_state["_signed_out"] = True
         for k in ["user"]:
             st.session_state.pop(k, None)
@@ -416,20 +419,91 @@ if st.session_state.get("_md_show_fetch", False):
                         st.session_state.pop(fp_key, None)
                         st.rerun()
 
-# ── Audit Log ──
+# ── User Management ──
+with st.expander("👥 User Management", expanded=False):
+    st.markdown("##### System Accounts")
+    all_users = get_users()
+    u_df = pd.DataFrame([
+        {"Username": u["username"], "Display Name": u.get("display", u["username"]), "Role": u.get("role", "admin")}
+        for u in all_users
+    ])
+    st.dataframe(u_df, use_container_width=True, hide_index=True)
+
+    uc1, uc2 = st.columns(2)
+    with uc1:
+        st.markdown("###### Add or Update User")
+        with st.form("form_save_user"):
+            nu_name = st.text_input("Username", placeholder="e.g. John").strip()
+            nu_pass = st.text_input("Password", type="password", placeholder="Leave blank to keep unchanged if editing")
+            nu_disp = st.text_input("Display Name", placeholder="e.g. John Doe").strip()
+            nu_role = st.selectbox("Role", ["admin", "viewer"], index=0)
+            btn_save_u = st.form_submit_button("💾 Save User", type="primary", use_container_width=True)
+            if btn_save_u:
+                if not nu_name:
+                    st.error("Username is required")
+                else:
+                    save_user(nu_name, nu_pass if nu_pass else None, nu_role, nu_disp or nu_name, author=username)
+                    st.session_state["_admin_msg"] = (f"User '{nu_name}' saved successfully", "success")
+                    st.rerun()
+
+    with uc2:
+        st.markdown("###### Delete User")
+        with st.form("form_delete_user"):
+            other_users = [u["username"] for u in all_users if u["username"] != username]
+            if other_users:
+                del_uname = st.selectbox("Select User to Delete", other_users)
+                btn_del_u = st.form_submit_button("🗑️ Delete User", use_container_width=True)
+                if btn_del_u:
+                    ok, msg = delete_user(del_uname, author=username)
+                    if ok:
+                        st.session_state["_admin_msg"] = (msg, "success")
+                    else:
+                        st.session_state["_admin_msg"] = (msg, "error")
+                    st.rerun()
+            else:
+                st.info("No other user accounts available to delete.")
+                st.form_submit_button("🗑️ Delete User", disabled=True, use_container_width=True)
+
+# ── Activity Log ──
 with st.expander("📋 Activity Log", expanded=False):
-    log_entries = get_activity_log(100)
+    log_entries = get_activity_log(200)
     if not log_entries:
-        st.caption("No activity recorded yet.")
+        st.info("ℹ️ No activity recorded yet. System activities such as logins, master data edits, Excel imports, user updates, and rate deduplication are logged here automatically.")
     else:
-        for entry in reversed(log_entries):
-            ts = entry["timestamp"][:19].replace("T", " ")
-            st.markdown(
-                f'<div style="font-size:0.75rem;padding:0.25rem 0;border-bottom:1px solid #f1f5f9">'
-                f'<span style="color:#64748b">{ts}</span> '
-                f'<span style="font-weight:600">{entry["user"]}</span> '
-                f'<span style="color:#1a73e8">{entry["action"]}</span>'
-                f'<span style="color:#64748b"> — {entry["details"]}</span>'
-                f'</div>',
-                unsafe_allow_html=True,
+        lc1, lc2 = st.columns([2, 1])
+        with lc1:
+            st.caption(f"Showing last {len(log_entries)} activity entries.")
+        with lc2:
+            filter_user = st.selectbox(
+                "Filter by User",
+                ["All"] + sorted(list({e["user"] for e in log_entries})),
+                key="filter_log_user",
+                label_visibility="collapsed"
             )
+
+        filtered = [e for e in log_entries if filter_user == "All" or e.get("user") == filter_user]
+
+        log_table_data = []
+        for entry in reversed(filtered):
+            ts = entry.get("timestamp", "")[:19].replace("T", " ")
+            act = entry.get("action", "")
+            log_table_data.append({
+                "Timestamp": ts,
+                "User": entry.get("user", ""),
+                "Action": act,
+                "Details": entry.get("details", "")
+            })
+
+        if log_table_data:
+            st.dataframe(
+                pd.DataFrame(log_table_data),
+                use_container_width=True,
+                hide_index=True,
+                column_config={
+                    "Timestamp": st.column_config.TextColumn("Time", width="medium"),
+                    "User": st.column_config.TextColumn("User", width="small"),
+                    "Action": st.column_config.TextColumn("Action", width="small"),
+                    "Details": st.column_config.TextColumn("Details", width="large"),
+                }
+            )
+

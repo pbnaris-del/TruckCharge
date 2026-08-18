@@ -4,6 +4,7 @@ from util import (
     find_tier, find_band, format_thb, match_kiswire_customer,
     load_json, save_json, DATA_DIR, authenticate,
     fetch_month_from_ptt, ensure_fuel_price_auto,
+    log_activity,
 )
 
 st.set_page_config(
@@ -400,6 +401,7 @@ def main():
                 u = authenticate(username, password)
                 if u:
                     st.session_state["user"] = u
+                    log_activity(u["username"], "login", f"Signed in as {u['display']} ({u['role']})")
                     st.rerun()
                 else:
                     st.error("Invalid username or password")
@@ -423,6 +425,7 @@ def main():
         )
     with tb3:
         if st.button("🚪 Sign Out", use_container_width=True):
+            log_activity(user["username"], "logout", f"User '{user['display']}' signed out")
             st.session_state["_signed_out"] = True
             for k in ["user", "diesel_input"]:
                 st.session_state.pop(k, None)
