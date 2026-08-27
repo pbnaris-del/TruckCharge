@@ -1,3 +1,4 @@
+import urllib.parse
 import streamlit as st
 import pandas as pd
 from util import (
@@ -236,6 +237,10 @@ with st.container(border=True):
                 r_et_id = st.selectbox("ET ID", sorted(et_routes.keys()),
                                         index=sorted(et_routes.keys()).index(r_et_id) if r_et_id in et_routes else 0,
                                         key=f"ar_et_id_{_rk}")
+            gmap_query = sel_route_display.replace("→", " ").replace("->", " ").replace("-", " ")
+            gmap_url = f"https://www.google.com/maps/search/?api=1&query={urllib.parse.quote(gmap_query)}"
+            st.link_button("📍 Open Route in Google Maps", gmap_url, use_container_width=True)
+
             ec1, ec2 = st.columns([1, 1])
             with ec1:
                 if st.button("💾 Save Route", key="btn_save_r", type="primary", use_container_width=True):

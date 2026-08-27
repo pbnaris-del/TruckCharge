@@ -1,4 +1,5 @@
 from datetime import date
+import urllib.parse
 import streamlit as st
 from util import (
     find_tier, find_band, format_thb, match_kiswire_customer,
@@ -443,6 +444,14 @@ def main():
     route_options = {r["display"]: r for r in vendor_data["routes"]}
     sel_route_display = st.sidebar.selectbox(t["route"], list(route_options.keys()), label_visibility="collapsed")
     sel_route = route_options[sel_route_display]
+
+    gmap_q = sel_route_display.replace("→", " ").replace("->", " ").replace("-", " ")
+    st.sidebar.markdown(
+        f'<a href="https://www.google.com/maps/search/?api=1&query={urllib.parse.quote(gmap_q)}" target="_blank" '
+        f'style="font-size:0.75rem;color:#1a73e8;text-decoration:none;display:inline-flex;align-items:center;gap:4px;margin-top:-0.25rem;margin-bottom:0.6rem;font-weight:600;">'
+        f'📍 Open route in Google Maps ↗</a>',
+        unsafe_allow_html=True
+    )
 
     container = st.sidebar.radio(t["container"], [t["c20"], t["c40"]], horizontal=True, label_visibility="collapsed")
     is_40 = container == t["c40"]

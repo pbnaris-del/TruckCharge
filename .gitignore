@@ -4,3 +4,11 @@ __pycache__/
 .idea/
 .vscode/
 data/backups/
+
+# Generated summary reports & exports
+generate_summary.py
+trucking_lanes_and_pricing_summary.*
+trucking_fuel_tier_pivot_matrix.*
+*.xlsx
+*.csv
+trucking_*.html
