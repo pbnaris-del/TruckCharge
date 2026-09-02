@@ -7,7 +7,7 @@
                                    "routes":  [
                                                   {
                                                       "id":  "assawa_icd_tha_sai",
-                                                      "display":  "BKK → Tha Sai (Samut Sakhon)",
+                                                      "display":  "BKK Depot → Tha Sai (Samut Sakhon)",
                                                       "is_et_route":  false,
                                                       "bands":  [
                                                                     {
@@ -19,7 +19,7 @@
                                                   },
                                                   {
                                                       "id":  "assawa_icd_sfc",
-                                                      "display":  "BKK → SFC (Phra Samut Chedi, Samut Prakan)",
+                                                      "display":  "BKK Depot → SFC (Phra Samut Chedi, Samut Prakan)",
                                                       "is_et_route":  false,
                                                       "bands":  [
                                                                     {
@@ -31,7 +31,7 @@
                                                   },
                                                   {
                                                       "id":  "assawa_icd_bridgestone",
-                                                      "display":  "BKK → Thai Bridgestone (Nong Khae, Saraburi)",
+                                                      "display":  "BKK Depot → Thai Bridgestone (Nong Khae, Saraburi)",
                                                       "is_et_route":  false,
                                                       "bands":  [
                                                                     {
@@ -1113,11 +1113,11 @@
                     "PLD":  {
                                 "company":  "PLD (Plaidinang) Partnership Limited",
                                 "effective_date":  "2026-04-01",
-                                "notes":  "Import/Export via BKK port. Two diesel blocks: 27.00-50.99 and 51.00-74.99.",
+                                "notes":  "Import/Export via BKK Depot. Two diesel blocks: 27.00-50.99 and 51.00-74.99.",
                                 "routes":  [
                                                {
                                                    "id":  "pld_irpc_suksawat_bkk",
-                                                   "display":  "BKK ↔ IRPC Suksawat (Samut Prakan) [ISO Tank]",
+                                                   "display":  "BKK Depot ↔ IRPC Suksawat (Samut Prakan) [ISO Tank]",
                                                    "is_et_route":  false,
                                                    "bands":  [
                                                                  {
@@ -1199,7 +1199,7 @@
                                                },
                                                {
                                                    "id":  "pld_os_wax_samutsakhon_bkk",
-                                                   "display":  "BKK ↔ OS Wax (Samut Sakhon) [Flexi Tank]",
+                                                   "display":  "BKK Depot ↔ OS Wax (Samut Sakhon) [Flexi Tank]",
                                                    "is_et_route":  false,
                                                    "bands":  [
                                                                  {
@@ -1281,7 +1281,7 @@
                                                },
                                                {
                                                    "id":  "pld_sfc_bkk",
-                                                   "display":  "BKK ↔ SFC (Phra Samut Chedi, Samut Prakan) [Flexi Tank]",
+                                                   "display":  "BKK Depot ↔ SFC (Phra Samut Chedi, Samut Prakan) [Flexi Tank]",
                                                    "is_et_route":  false,
                                                    "bands":  [
                                                                  {
@@ -1363,7 +1363,7 @@
                                                },
                                                {
                                                    "id":  "pld_general_bkk",
-                                                   "display":  "BKK ↔ SFC (Phra Samut Chedi, Samut Prakan) [20\u0027/40\u0027 Dry]",
+                                                   "display":  "BKK Depot ↔ SFC (Phra Samut Chedi, Samut Prakan) [20\u0027/40\u0027 Dry]",
                                                    "is_et_route":  false,
                                                    "bands":  [
                                                                  {
@@ -1452,7 +1452,7 @@
                                   "routes":  [
                                                  {
                                                      "id":  "usave_bkk_gws_lcb",
-                                                     "display":  "BKK → GWS LCB (Drayage)",
+                                                     "display":  "BKK Depot → GWS LCB (Drayage)",
                                                      "is_et_route":  true,
                                                      "et_route_id":  "bkk_to_gws_lcb",
                                                      "bands":  [
@@ -1615,7 +1615,7 @@
                                                  },
                                                  {
                                                      "id":  "usave_bkk_bwt_lcb",
-                                                     "display":  "BKK → BWT LCB (Drayage)",
+                                                     "display":  "BKK Depot → BWT LCB (Drayage)",
                                                      "is_et_route":  true,
                                                      "et_route_id":  "bkk_to_bwt_lcb",
                                                      "bands":  [
@@ -1778,7 +1778,7 @@
                                                  },
                                                  {
                                                      "id":  "usave_bkk_pds_lcb",
-                                                     "display":  "BKK → PDS LCB (Drayage)",
+                                                     "display":  "BKK Depot → PDS LCB (Drayage)",
                                                      "is_et_route":  true,
                                                      "et_route_id":  "bkk_to_pds_lcb",
                                                      "bands":  [
@@ -1941,7 +1941,7 @@
                                                  },
                                                  {
                                                      "id":  "usave_sot_bkk_hmj_lcb",
-                                                     "display":  "BKK (SOT) → HMJ LCB (Drayage)",
+                                                     "display":  "BKK Depot (SOT) → HMJ LCB (Drayage)",
                                                      "is_et_route":  true,
                                                      "et_route_id":  "sot_bkk_to_hmj_lcb",
                                                      "bands":  [
@@ -2104,7 +2104,7 @@
                                                  },
                                                  {
                                                      "id":  "usave_bkk_fsts_lcb",
-                                                     "display":  "BKK → FSTS LCB (Drayage)",
+                                                     "display":  "BKK Depot → FSTS LCB (Drayage)",
                                                      "is_et_route":  true,
                                                      "et_route_id":  "bkk_to_fsts_lcb",
                                                      "bands":  [
@@ -2267,7 +2267,7 @@
                                                  },
                                                  {
                                                      "id":  "usave_bkk_pdsr",
-                                                     "display":  "BKK → PDSR LCB (Drayage)",
+                                                     "display":  "BKK Depot → PDSR LCB (Drayage)",
                                                      "is_et_route":  true,
                                                      "et_route_id":  "bkk_to_pdsr",
                                                      "bands":  [
@@ -3571,7 +3571,7 @@
                                                  },
                                                  {
                                                      "id":  "usave_otani_radial",
-                                                     "display":  "BKK → Otani Radial (Nakhon Pathom)",
+                                                     "display":  "BKK Depot → Otani Radial (Nakhon Pathom)",
                                                      "is_et_route":  false,
                                                      "et_route_id":  null,
                                                      "bands":  [
@@ -3734,7 +3734,7 @@
                                                  },
                                                  {
                                                      "id":  "usave_otani_tire",
-                                                     "display":  "BKK → Otani Tire (Nakhon Pathom)",
+                                                     "display":  "BKK Depot → Otani Tire (Nakhon Pathom)",
                                                      "is_et_route":  false,
                                                      "et_route_id":  null,
                                                      "bands":  [
@@ -3897,7 +3897,7 @@
                                                  },
                                                  {
                                                      "id":  "usave_svizz_one",
-                                                     "display":  "BKK → Svizz-One (Nakhon Pathom)",
+                                                     "display":  "BKK Depot → Svizz-One (Nakhon Pathom)",
                                                      "is_et_route":  false,
                                                      "et_route_id":  null,
                                                      "bands":  [
@@ -4060,7 +4060,7 @@
                                                  },
                                                  {
                                                      "id":  "usave_thai_bridgestone",
-                                                     "display":  "BKK → Thai Bridgestone (Nong Khae, Saraburi)",
+                                                     "display":  "BKK Depot → Thai Bridgestone (Nong Khae, Saraburi)",
                                                      "is_et_route":  false,
                                                      "et_route_id":  null,
                                                      "bands":  [
@@ -4223,7 +4223,7 @@
                                                  },
                                                  {
                                                      "id":  "usave_michelin_ppd",
-                                                     "display":  "BKK → Michelin Siam (Phra Pradaeng, Samut Prakan)",
+                                                     "display":  "BKK Depot → Michelin Siam (Phra Pradaeng, Samut Prakan)",
                                                      "is_et_route":  false,
                                                      "et_route_id":  null,
                                                      "bands":  [
@@ -4386,7 +4386,7 @@
                                                  },
                                                  {
                                                      "id":  "usave_michelin_nongkhae",
-                                                     "display":  "BKK → Michelin Siam (Nong Khae, Saraburi)",
+                                                     "display":  "BKK Depot → Michelin Siam (Nong Khae, Saraburi)",
                                                      "is_et_route":  false,
                                                      "et_route_id":  null,
                                                      "bands":  [
@@ -4549,7 +4549,7 @@
                                                  },
                                                  {
                                                      "id":  "usave_victoria_bangpu",
-                                                     "display":  "BKK → Victoria Tyres (Bangpu, Samut Prakan)",
+                                                     "display":  "BKK Depot → Victoria Tyres (Bangpu, Samut Prakan)",
                                                      "is_et_route":  false,
                                                      "et_route_id":  null,
                                                      "bands":  [
@@ -4712,7 +4712,7 @@
                                                  },
                                                  {
                                                      "id":  "usave_vee_rubber",
-                                                     "display":  "BKK → Vee Rubber (Samut Sakhon)",
+                                                     "display":  "BKK Depot → Vee Rubber (Samut Sakhon)",
                                                      "is_et_route":  false,
                                                      "et_route_id":  null,
                                                      "bands":  [
@@ -4875,7 +4875,7 @@
                                                  },
                                                  {
                                                      "id":  "usave_lenzing",
-                                                     "display":  "BKK/LCB → Lenzing (304 Park, Prachinburi)",
+                                                     "display":  "BKK Depot/LCB → Lenzing (304 Park, Prachinburi)",
                                                      "is_et_route":  false,
                                                      "et_route_id":  null,
                                                      "bands":  [
@@ -5433,7 +5433,7 @@
                                                },
                                                {
                                                    "id":  "vkn_otani_radial",
-                                                   "display":  "BKK → Otani Radial (Nakhon Pathom)",
+                                                   "display":  "BKK Depot → Otani Radial (Nakhon Pathom)",
                                                    "is_et_route":  false,
                                                    "bands":  [
                                                                  {
@@ -5505,7 +5505,7 @@
                                                },
                                                {
                                                    "id":  "vkn_otani_tire",
-                                                   "display":  "BKK → Otani Tire (Nakhon Pathom)",
+                                                   "display":  "BKK Depot → Otani Tire (Nakhon Pathom)",
                                                    "is_et_route":  false,
                                                    "bands":  [
                                                                  {
@@ -5577,7 +5577,7 @@
                                                },
                                                {
                                                    "id":  "vkn_svizz_one",
-                                                   "display":  "BKK → Svizz-One (Nakhon Pathom)",
+                                                   "display":  "BKK Depot → Svizz-One (Nakhon Pathom)",
                                                    "is_et_route":  false,
                                                    "bands":  [
                                                                  {
@@ -5649,7 +5649,7 @@
                                                },
                                                {
                                                    "id":  "vkn_thai_bridgestone",
-                                                   "display":  "BKK → Thai Bridgestone (Nong Khae, Saraburi)",
+                                                   "display":  "BKK Depot → Thai Bridgestone (Nong Khae, Saraburi)",
                                                    "is_et_route":  false,
                                                    "bands":  [
                                                                  {
@@ -5721,7 +5721,7 @@
                                                },
                                                {
                                                    "id":  "vkn_michelin_nongkhae",
-                                                   "display":  "BKK → Michelin Siam (Nong Khae, Saraburi)",
+                                                   "display":  "BKK Depot → Michelin Siam (Nong Khae, Saraburi)",
                                                    "is_et_route":  false,
                                                    "bands":  [
                                                                  {
@@ -6870,7 +6870,7 @@
                                                },
                                                {
                                                    "id":  "fusion_general",
-                                                   "display":  "BKK/LCB → General Trucking (per load)",
+                                                   "display":  "BKK Depot/LCB → General Trucking (per load)",
                                                    "is_et_route":  false,
                                                    "bands":  [
                                                                  {
