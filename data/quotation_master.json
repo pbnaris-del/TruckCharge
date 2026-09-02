@@ -662,7 +662,7 @@
                                                },
                                                {
                                                    "id":  "hpm_michelin_lcb",
-                                                   "display":  "LCB ↔ Michelin (Laem Chabang, Chonburi)",
+                                                   "display":  "LCB → Michelin (Laem Chabang, Chonburi)",
                                                    "is_et_route":  false,
                                                    "bands":  [
                                                                  {
