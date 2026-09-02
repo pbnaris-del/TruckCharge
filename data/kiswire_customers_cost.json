@@ -1,189 +1,208 @@
 {
-  "customers": [
-    {
-      "customer": "THAI BRIDGESTONE",
-      "location": "SARABURI",
-      "port": "LAEM CHABANG",
-      "trucking_20_usd": 270,
-      "trucking_40_usd": 300
-    },
-    {
-      "customer": "BRIDGESTONE INDUSTRIAL PRODUCTS (THAILAND) CO. LTD. (FORMER: BRIDGESTONE NCR CO.,LTD)",
-      "location": "RAYONG",
-      "port": "LAEM CHABANG",
-      "trucking_20_usd": 200,
-      "trucking_40_usd": 350
-    },
-    {
-      "customer": "YOKOHAMA TIRE MANUFACTURING (THAILAND) CO.,LTD.",
-      "location": "RAYONG",
-      "port": "LAEM CHABANG",
-      "trucking_20_usd": null,
-      "trucking_40_usd": null
-    },
-    {
-      "customer": "BRIDGESTONE TIRE MANUFACTURING (THAILAND) CO., LTD.",
-      "location": "CHONBURI",
-      "port": "LAEM CHABANG",
-      "trucking_20_usd": 235,
-      "trucking_40_usd": 315
-    },
-    {
-      "customer": "SUMITOMO CO.,LTD.",
-      "location": "PLUAK DAENG , RAYONG",
-      "port": "LAEMCHABANG",
-      "trucking_20_usd": 250,
-      "trucking_40_usd": 315
-    },
-    {
-      "customer": "SIAMTRUCK RADIAL",
-      "location": "NAKORN PRATOM",
-      "port": "SAHATHAI",
-      "trucking_20_usd": 250,
-      "trucking_40_usd": 320
-    },
-    {
-      "customer": "SR TYRE CO.,LTD.",
-      "location": "PRACHINBURI",
-      "port": "LAEM CHABANG",
-      "trucking_20_usd": 250,
-      "trucking_40_usd": 315
-    },
-    {
-      "customer": "SVIZZ ONE CO.,LTD.",
-      "location": "NAKORN PRATOM",
-      "port": "LAT KRABANG",
-      "trucking_20_usd": 250,
-      "trucking_40_usd": 320
-    },
-    {
-      "customer": "OTANI RADIAL CO.,LTD.",
-      "location": "NAKORN CHAISRI",
-      "port": "P.A.T. ( BKK )",
-      "trucking_20_usd": 250,
-      "trucking_40_usd": 325
-    },
-    {
-      "customer": "LION TYRE CO.,LTD.",
-      "location": "BANGPOO, SAMUTPRAKARN",
-      "port": "LATKRABANG",
-      "trucking_20_usd": 200,
-      "trucking_40_usd": 325
-    },
-    {
-      "customer": "MAXXIS  CO.,LTD.",
-      "location": "PLUAK DAENG , RAYONG",
-      "port": "LAEMCHABANG",
-      "trucking_20_usd": 250,
-      "trucking_40_usd": 315
-    },
-    {
-      "customer": "VEE RUBBER CO.,LTD.",
-      "location": "SAMUTSAKORN",
-      "port": "P.A.T. ( BKK )",
-      "trucking_20_usd": 280,
-      "trucking_40_usd": 350
-    },
-    {
-      "customer": "MICHELIN SIAM CO.,LTD.",
-      "location": "SARA BURI",
-      "port": "LAEMCHABANG",
-      "trucking_20_usd": 285,
-      "trucking_40_usd": 350
-    },
-    {
-      "customer": "GOOD YEAR",
-      "location": "KLONG LUANG , PATHUM THANI",
-      "port": "LAEMCHABANG",
-      "trucking_20_usd": 270,
-      "trucking_40_usd": 350
-    },
-    {
-      "customer": "INOUE RUBBER",
-      "location": "THANYA BURI, PATHUM THANI",
-      "port": "P.A.T. ( BKK )",
-      "trucking_20_usd": 285,
-      "trucking_40_usd": 350
-    },
-    {
-      "customer": "MICHELIN SIAM CO.,LTD.",
-      "location": "PHRAPRADEANG, SAMUTPRAKARN",
-      "port": "BANGKOK",
-      "trucking_20_usd": 265,
-      "trucking_40_usd": 285
-    },
-    {
-      "customer": "MICHELIN SIAM CO.,LTD.",
-      "location": "BANG LAMUNG DISTRICT, CHON BURI",
-      "port": "LAEMCHABANG",
-      "trucking_20_usd": 165,
-      "trucking_40_usd": 280
-    },
-    {
-      "customer": "SEMPERFLEX",
-      "location": "SONGKHLA, THAILAND",
-      "port": "SONGKHLA, THAILAND",
-      "trucking_20_usd": 190,
-      "trucking_40_usd": 250
-    },
-    {
-      "customer": "CONTINENTAL TYRES (THAILAND) CO., LTD.",
-      "location": "RAYONG, THAILAND",
-      "port": "LAEM CHABANG, THAILAND",
-      "trucking_20_usd": 250,
-      "trucking_40_usd": 315
-    }
-  ],
-  "source": "KISWIRE - COST_ Update for Eff NOV 23, 2020 _ by Varichphan.xlsx",
-  "fsc_tiers": [
-    {
-      "tier": "Below 29.00",
-      "markup_usd": 0,
-      "note": "Subject to review"
-    },
-    {
-      "tier": "29.01 - 31.00 (Base)",
-      "markup_usd": 0
-    },
-    {
-      "tier": "31.01 - 33.00",
-      "markup_usd": 10
-    },
-    {
-      "tier": "33.01 - 35.00",
-      "markup_usd": 20
-    },
-    {
-      "tier": "35.01 - 37.00",
-      "markup_usd": 30
-    },
-    {
-      "tier": "37.01 - 39.00",
-      "markup_usd": 40
-    },
-    {
-      "tier": "39.01 - 41.00",
-      "markup_usd": 50
-    },
-    {
-      "tier": "41.01 - 43.00",
-      "markup_usd": 60
-    },
-    {
-      "tier": "43.01 - 45.00",
-      "markup_usd": 70
-    },
-    {
-      "tier": "45.01 - 47.00",
-      "markup_usd": 80
-    },
-    {
-      "tier": "47.01 - 49.00",
-      "markup_usd": 90
-    },
-    {
-      "tier": "49.01 - 51.00",
-      "markup_usd": 100
-    }
-  ]
+    "customers":  [
+                      {
+                          "customer":  "THAI BRIDGESTONE",
+                          "location":  "SARABURI",
+                          "port":  "LAEM CHABANG",
+                          "trucking_20_usd":  270,
+                          "trucking_40_usd":  300,
+                          "canonical_route":  "BKK Depot → Thai Bridgestone (Nong Khae, Saraburi)"
+                      },
+                      {
+                          "customer":  "BRIDGESTONE INDUSTRIAL PRODUCTS (THAILAND) CO. LTD. (FORMER: BRIDGESTONE NCR CO.,LTD)",
+                          "location":  "RAYONG",
+                          "port":  "LAEM CHABANG",
+                          "trucking_20_usd":  200,
+                          "trucking_40_usd":  350,
+                          "canonical_route":  "LCB → Bridgestone NCR / Industrial Products (Rayong)"
+                      },
+                      {
+                          "customer":  "YOKOHAMA TIRE MANUFACTURING (THAILAND) CO.,LTD.",
+                          "location":  "RAYONG",
+                          "port":  "LAEM CHABANG",
+                          "trucking_20_usd":  null,
+                          "trucking_40_usd":  null,
+                          "canonical_route":  "LCB → Yokohama Tire (Rayong)"
+                      },
+                      {
+                          "customer":  "BRIDGESTONE TIRE MANUFACTURING (THAILAND) CO., LTD.",
+                          "location":  "CHONBURI",
+                          "port":  "LAEM CHABANG",
+                          "trucking_20_usd":  235,
+                          "trucking_40_usd":  315,
+                          "canonical_route":  "LCB → Bridgestone Tire (Amata City Chonburi)"
+                      },
+                      {
+                          "customer":  "SUMITOMO CO.,LTD.",
+                          "location":  "PLUAK DAENG , RAYONG",
+                          "port":  "LAEMCHABANG",
+                          "trucking_20_usd":  250,
+                          "trucking_40_usd":  315,
+                          "canonical_route":  "LCB → Sumitomo Rubber (Rayong)"
+                      },
+                      {
+                          "customer":  "SIAMTRUCK RADIAL",
+                          "location":  "NAKORN PRATOM",
+                          "port":  "SAHATHAI",
+                          "trucking_20_usd":  250,
+                          "trucking_40_usd":  320,
+                          "canonical_route":  "BKK Depot → Siamtruck Radial (Nakhon Pathom)"
+                      },
+                      {
+                          "customer":  "SR TYRE CO.,LTD.",
+                          "location":  "PRACHINBURI",
+                          "port":  "LAEM CHABANG",
+                          "trucking_20_usd":  250,
+                          "trucking_40_usd":  315,
+                          "canonical_route":  "LCB → SR Tyres / Lenzing (Prachinburi)"
+                      },
+                      {
+                          "customer":  "SVIZZ ONE CO.,LTD.",
+                          "location":  "NAKORN PRATOM",
+                          "port":  "LAT KRABANG",
+                          "trucking_20_usd":  250,
+                          "trucking_40_usd":  320,
+                          "canonical_route":  "BKK Depot → Svizz-One (Nakhon Pathom)"
+                      },
+                      {
+                          "customer":  "OTANI RADIAL CO.,LTD.",
+                          "location":  "NAKORN CHAISRI",
+                          "port":  "P.A.T. ( BKK )",
+                          "trucking_20_usd":  250,
+                          "trucking_40_usd":  325,
+                          "canonical_route":  "BKK Depot → Otani Radial / Otani Tire (Nakhon Pathom)"
+                      },
+                      {
+                          "customer":  "LION TYRE CO.,LTD.",
+                          "location":  "BANGPOO, SAMUTPRAKARN",
+                          "port":  "LATKRABANG",
+                          "trucking_20_usd":  200,
+                          "trucking_40_usd":  325,
+                          "canonical_route":  "BKK Depot → Victoria Tyres / Lion Tyre (Bangpu, Samut Prakan)"
+                      },
+                      {
+                          "customer":  "MAXXIS  CO.,LTD.",
+                          "location":  "PLUAK DAENG , RAYONG",
+                          "port":  "LAEMCHABANG",
+                          "trucking_20_usd":  250,
+                          "trucking_40_usd":  315,
+                          "canonical_route":  "LCB → Maxxis (Rayong)"
+                      },
+                      {
+                          "customer":  "VEE RUBBER CO.,LTD.",
+                          "location":  "SAMUTSAKORN",
+                          "port":  "P.A.T. ( BKK )",
+                          "trucking_20_usd":  280,
+                          "trucking_40_usd":  350,
+                          "canonical_route":  "BKK Depot → Vee Rubber / Tha Sai (Samut Sakhon)"
+                      },
+                      {
+                          "customer":  "MICHELIN SIAM CO.,LTD.",
+                          "location":  "SARA BURI",
+                          "port":  "LAEMCHABANG",
+                          "trucking_20_usd":  285,
+                          "trucking_40_usd":  350,
+                          "canonical_route":  "BKK Depot → Michelin Siam (Nong Khae, Saraburi)"
+                      },
+                      {
+                          "customer":  "GOOD YEAR",
+                          "location":  "KLONG LUANG , PATHUM THANI",
+                          "port":  "LAEMCHABANG",
+                          "trucking_20_usd":  270,
+                          "trucking_40_usd":  350,
+                          "canonical_route":  "BKK Depot → Good Year (Pathum Thani)"
+                      },
+                      {
+                          "customer":  "INOUE RUBBER",
+                          "location":  "THANYA BURI, PATHUM THANI",
+                          "port":  "P.A.T. ( BKK )",
+                          "trucking_20_usd":  285,
+                          "trucking_40_usd":  350,
+                          "canonical_route":  "BKK Depot → Inoue Rubber (Pathum Thani)"
+                      },
+                      {
+                          "customer":  "MICHELIN SIAM CO.,LTD.",
+                          "location":  "PHRAPRADEANG, SAMUTPRAKARN",
+                          "port":  "BANGKOK",
+                          "trucking_20_usd":  265,
+                          "trucking_40_usd":  285,
+                          "canonical_route":  "BKK Depot → Michelin Siam / SFC (Phra Pradaeng, Samut Prakan)"
+                      },
+                      {
+                          "customer":  "MICHELIN SIAM CO.,LTD.",
+                          "location":  "BANG LAMUNG DISTRICT, CHON BURI",
+                          "port":  "LAEMCHABANG",
+                          "trucking_20_usd":  165,
+                          "trucking_40_usd":  280,
+                          "canonical_route":  "LCB → Michelin (Laem Chabang, Chonburi)"
+                      },
+                      {
+                          "customer":  "SEMPERFLEX",
+                          "location":  "SONGKHLA, THAILAND",
+                          "port":  "SONGKHLA, THAILAND",
+                          "trucking_20_usd":  190,
+                          "trucking_40_usd":  250,
+                          "canonical_route":  "Songkhla → Semperflex (Songkhla)"
+                      },
+                      {
+                          "customer":  "CONTINENTAL TYRES (THAILAND) CO., LTD.",
+                          "location":  "RAYONG, THAILAND",
+                          "port":  "LAEM CHABANG, THAILAND",
+                          "trucking_20_usd":  250,
+                          "trucking_40_usd":  315,
+                          "canonical_route":  "LCB → Continental Tyres (Rayong)"
+                      }
+                  ],
+    "source":  "KISWIRE - COST_ Update for Eff NOV 23, 2020 _ by Varichphan.xlsx",
+    "fsc_tiers":  [
+                      {
+                          "tier":  "Below 29.00",
+                          "markup_usd":  0,
+                          "note":  "Subject to review"
+                      },
+                      {
+                          "tier":  "29.01 - 31.00 (Base)",
+                          "markup_usd":  0
+                      },
+                      {
+                          "tier":  "31.01 - 33.00",
+                          "markup_usd":  10
+                      },
+                      {
+                          "tier":  "33.01 - 35.00",
+                          "markup_usd":  20
+                      },
+                      {
+                          "tier":  "35.01 - 37.00",
+                          "markup_usd":  30
+                      },
+                      {
+                          "tier":  "37.01 - 39.00",
+                          "markup_usd":  40
+                      },
+                      {
+                          "tier":  "39.01 - 41.00",
+                          "markup_usd":  50
+                      },
+                      {
+                          "tier":  "41.01 - 43.00",
+                          "markup_usd":  60
+                      },
+                      {
+                          "tier":  "43.01 - 45.00",
+                          "markup_usd":  70
+                      },
+                      {
+                          "tier":  "45.01 - 47.00",
+                          "markup_usd":  80
+                      },
+                      {
+                          "tier":  "47.01 - 49.00",
+                          "markup_usd":  90
+                      },
+                      {
+                          "tier":  "49.01 - 51.00",
+                          "markup_usd":  100
+                      }
+                  ]
 }
