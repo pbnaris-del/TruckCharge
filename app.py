@@ -453,8 +453,9 @@ def main():
         unsafe_allow_html=True
     )
 
-    container = st.sidebar.radio(t["container"], [t["c20"], t["c40"]], horizontal=True, label_visibility="collapsed")
+    container = st.sidebar.radio(t["container"], [t["both"], t["c20"], t["c40"]], horizontal=True, label_visibility="collapsed")
     is_40 = container == t["c40"]
+    is_both = container == t["both"]
 
     # ── Sidebar: KISWIRE Customer ──
     st.sidebar.markdown(
@@ -626,12 +627,6 @@ def main():
 
     k_tier = find_tier(kiswire["fsc_tiers"], diesel)
     k_markup = k_tier["markup_usd"] if k_tier else 0
-    if is_40:
-        k_display = k_markup * 2
-        k_note = t['kiswire_40_note']
-    else:
-        k_display = k_markup
-        k_note = t['kiswire_20_note']
 
     # ── Verdict Banner ──
     st.markdown(build_verdict_banner(variance, vendor_rate, billed, vendor_band, t), unsafe_allow_html=True)
@@ -675,48 +670,86 @@ def main():
 
     with c3:
         if sel_customer is None:
-            st.markdown(build_na_card("Select a KISWIRE customer to see cost breakdown"), unsafe_allow_html=True)
+            st.markdown(build_na_card("Select a KISWIRE customer to see 20' & 40' cost breakdown"), unsafe_allow_html=True)
         else:
-            baseline_cost = sel_customer["trucking_20_usd"] if not is_40 else sel_customer["trucking_40_usd"]
-            if baseline_cost is None:
-                st.markdown(build_na_card("No baseline cost data for this customer"), unsafe_allow_html=True)
-            elif k_tier:
-                total_cost = baseline_cost + (k_markup * (2 if is_40 else 1))
-                rows = [
-                    {"label": sel_customer_name[:30], "value": f"{sel_customer['location'][:20]}"},
-                    {"label": t["container"], "value": f"{'20' if not is_40 else '40'}' | {sel_customer['port'][:18]}"},
-                    {"label": "", "value": "", "cls": "divider"},
-                    {"label": "Baseline", "value": f"$ {baseline_cost:.0f} USD"},
-                    {"label": t["fsc_tier_label"], "value": f"+ $ {k_markup:.0f} USD", "cls": "warning"},
-                    {"label": t["container_adjust"], "value": f"× {2 if is_40 else 1}", "cls": "" if not is_40 else "primary"},
-                    {"label": "", "value": "", "cls": "divider"},
-                    {"label": "Total Est.", "value": f"$ {total_cost:.0f} USD", "cls": "primary"},
-                ]
-                st.markdown(build_result_card("amber", "📋", t["kiswire_title"], rows), unsafe_allow_html=True)
-            else:
-                rows = [
-                    {"label": sel_customer_name[:30], "value": f"{sel_customer['location'][:20]}"},
-                    {"label": t["container"], "value": f"{'20' if not is_40 else '40'}' | {sel_customer['port'][:18]}"},
-                    {"label": "", "value": "", "cls": "divider"},
-                    {"label": "Baseline", "value": f"$ {baseline_cost:.0f} USD"},
-                    {"label": t["fsc_tier_label"], "value": "$ 0 USD (below base)", "cls": ""},
-                ]
-                st.markdown(build_result_card("amber", "📋", t["kiswire_title"], rows), unsafe_allow_html=True)
+            cost_20 = sel_customer.get("trucking_20_usd")
+            cost_40 = sel_customer.get("trucking_40_usd")
+            fsc_20 = k_markup if k_tier else 0
+            fsc_40 = (k_markup * 2) if k_tier else 0
+            total_20 = (cost_20 + fsc_20) if cost_20 is not None else None
+            total_40 = (cost_40 + fsc_40) if cost_40 is not None else None
+
+            rows = [
+                {"label": sel_customer_name[:32], "value": f"{sel_customer['location'][:20]}"},
+                {"label": "Port", "value": f"{sel_customer['port'][:20]}"},
+                {"label": "", "value": "", "cls": "divider"},
+                {"label": "📦 20' Total Est.", "value": f"$ {total_20:.0f} USD" if total_20 else "N/A", "cls": "primary" if not is_40 else ""},
+                {"label": "  ├ 20' Base", "value": f"$ {cost_20:.0f} USD" if cost_20 else "N/A"},
+                {"label": "  └ 20' FSC (1×)", "value": f"+ $ {fsc_20:.0f} USD" if k_tier else "$ 0 USD", "cls": "warning"},
+                {"label": "", "value": "", "cls": "divider"},
+                {"label": "📦 40' Total Est.", "value": f"$ {total_40:.0f} USD" if total_40 else "N/A", "cls": "primary" if is_40 or is_both else ""},
+                {"label": "  ├ 40' Base", "value": f"$ {cost_40:.0f} USD" if cost_40 else "N/A"},
+                {"label": "  └ 40' FSC (2×)", "value": f"+ $ {fsc_40:.0f} USD" if k_tier else "$ 0 USD", "cls": "warning"},
+            ]
+            st.markdown(build_result_card("amber", "📋", t["kiswire_title"], rows), unsafe_allow_html=True)
+
+    # ── Combined 20' & 40' Container Matrix Section ──
+    st.markdown(f'<div style="margin-top:1.5rem;margin-bottom:0.75rem;display:flex;align-items:center;gap:8px;"><span style="font-size:1.1rem;">📦</span><h3 style="font-size:0.95rem;font-weight:700;margin:0;color:var(--text-primary);">{t["dual_title"]}</h3></div>', unsafe_allow_html=True)
+
+    col_20, col_40 = st.columns(2)
+    with col_20:
+        cost_20_val = sel_customer.get("trucking_20_usd") if sel_customer else None
+        fsc_20_val = k_markup if k_tier else 0
+        tot_20_val = (cost_20_val + fsc_20_val) if cost_20_val is not None else None
+        tot_20_thb = (tot_20_val * 35.0) if tot_20_val else None
+
+        rows_20 = [
+            {"label": "Equipment Profile", "value": "20' Container / Standard Dry", "cls": "primary"},
+            {"label": t["quoted_rate"], "value": f"{format_thb(vendor_rate)} THB"},
+            {"label": t["billed_amount"], "value": f"{format_thb(billed)} THB" if (not is_40 and billed > 0) else "—"},
+            {"label": "", "value": "", "cls": "divider"},
+            {"label": "KISWIRE Base Cost", "value": f"$ {cost_20_val:.0f} USD" if cost_20_val else "N/A"},
+            {"label": "KISWIRE FSC Markup (1×)", "value": f"+ $ {fsc_20_val:.0f} USD", "cls": "warning"},
+            {"label": "KISWIRE Total Customer Cost", "value": f"$ {tot_20_val:.0f} USD" if tot_20_val else "N/A", "cls": "primary"},
+            {"label": "Est. THB Eqv (@35 THB/USD)", "value": f"~{format_thb(tot_20_thb)} THB" if tot_20_thb else "N/A"},
+        ]
+        badge_20 = " <span style='font-size:0.65rem;background:#dbeafe;color:#1e40af;padding:2px 6px;border-radius:4px;'>Selected</span>" if not is_40 and not is_both else ""
+        st.markdown(build_result_card("blue", "📦", f"20' Container Profile{badge_20}", rows_20), unsafe_allow_html=True)
+
+    with col_40:
+        cost_40_val = sel_customer.get("trucking_40_usd") if sel_customer else None
+        fsc_40_val = (k_markup * 2) if k_tier else 0
+        tot_40_val = (cost_40_val + fsc_40_val) if cost_40_val is not None else None
+        tot_40_thb = (tot_40_val * 35.0) if tot_40_val else None
+
+        rows_40 = [
+            {"label": "Equipment Profile", "value": "40' Container / High Cube", "cls": "primary"},
+            {"label": t["quoted_rate"], "value": f"{format_thb(vendor_rate)} THB"},
+            {"label": t["billed_amount"], "value": f"{format_thb(billed)} THB" if (is_40 and billed > 0) else "—"},
+            {"label": "", "value": "", "cls": "divider"},
+            {"label": "KISWIRE Base Cost", "value": f"$ {cost_40_val:.0f} USD" if cost_40_val else "N/A"},
+            {"label": "KISWIRE FSC Markup (2×)", "value": f"+ $ {fsc_40_val:.0f} USD", "cls": "warning"},
+            {"label": "KISWIRE Total Customer Cost", "value": f"$ {tot_40_val:.0f} USD" if tot_40_val else "N/A", "cls": "primary"},
+            {"label": "Est. THB Eqv (@35 THB/USD)", "value": f"~{format_thb(tot_40_thb)} THB" if tot_40_thb else "N/A"},
+        ]
+        badge_40 = " <span style='font-size:0.65rem;background:#dbeafe;color:#1e40af;padding:2px 6px;border-radius:4px;'>Selected</span>" if is_40 else ""
+        st.markdown(build_result_card("green", "📦", f"40' Container Profile{badge_40}", rows_40), unsafe_allow_html=True)
 
 
 TRANS = {
     "EN": {
         "vendor": "Vendor",
         "route": "Route",
-        "container": "Container",
+        "container": "Container Size",
         "c20": "20'",
         "c40": "40'",
+        "both": "Both 20' & 40'",
         "date": "Service Date",
         "diesel": "Diesel Price",
         "billed": "Billed Amount (THB)",
         "validate": "Validate Invoice",
         "title": "E-WAY Invoice Auditor",
-        "subtitle": "Validate trucking charges against quotations",
+        "subtitle": "Validate trucking charges against quotations & 20'/40' container benchmarks",
         "prompt": "Fill in the sidebar and click **Validate Invoice**.",
         "no_band_vendor": "No matching price band for diesel {:.2f} THB/L.",
         "base": "Base Rate",
@@ -727,7 +760,7 @@ TRANS = {
         "loss": "Loss",
         "fsc_tier_label": "FSC Tier",
         "container_adjust": "Container Adj.",
-        "kiswire_40_note": "40' container: 2\u00d7 standard FSC markup",
+        "kiswire_40_note": "40' container: 2× standard FSC markup",
         "kiswire_20_note": "20' container: standard FSC markup",
         "costing": "Costing",
         "quoted_rate": "Quoted Rate",
@@ -735,7 +768,7 @@ TRANS = {
         "variance": "Variance",
         "band_used": "Band",
         "pricing_hq_title": "HQ Pricing",
-        "kiswire_title": "KISWIRE FSC",
+        "kiswire_title": "KISWIRE FSC (20' & 40')",
         "kiswire_customer": "KISWIRE Customer",
         "select_kiswire": "— Select KISWIRE customer —",
         "available_range": "Available diesel range",
@@ -749,6 +782,7 @@ TRANS = {
         "save_fuel": "Save",
         "save_range": "Range",
         "inv_section": "Invoice",
+        "dual_title": "Combined Container Analysis (20' vs 40')",
     },
     "TH": {
         "vendor": "ผู้ให้บริการ",
@@ -756,12 +790,13 @@ TRANS = {
         "container": "ประเภทตู้",
         "c20": "20'",
         "c40": "40'",
+        "both": "ทั้ง 20' และ 40'",
         "date": "วันที่ให้บริการ",
         "diesel": "ราคาดีเซล",
         "billed": "จำนวนเงิน (บาท)",
         "validate": "ตรวจสอบใบแจ้งหนี้",
         "title": "E-WAY ตรวจสอบใบแจ้งหนี้ค่ารถ",
-        "subtitle": "ตรวจสอบค่าใช้จ่ายขนส่งเทียบกับใบเสนอราคา",
+        "subtitle": "ตรวจสอบค่าใช้จ่ายขนส่งเทียบกับใบเสนอราคาและราคาเปรียบเทียบทั้งตู้ 20' และ 40'",
         "prompt": "กรอกข้อมูลในแถบด้านข้างแล้วคลิก **ตรวจสอบใบแจ้งหนี้**",
         "no_band_vendor": "ไม่มีช่วงราคาที่ตรงกับดีเซล {:.2f} บาท/ลิตร",
         "base": "ราคาฐาน",
@@ -780,7 +815,7 @@ TRANS = {
         "variance": "ส่วนต่าง",
         "band_used": "ช่วงดีเซล",
         "pricing_hq_title": "ราคาขาย (HQ)",
-        "kiswire_title": "KISWIRE FSC",
+        "kiswire_title": "KISWIRE FSC (ตู้ 20' & 40')",
         "kiswire_customer": "ลูกค้า KISWIRE",
         "select_kiswire": "— เลือกลูกค้า KISWIRE —",
         "available_range": "ช่วงดีเซลที่มี",
@@ -794,6 +829,7 @@ TRANS = {
         "save_fuel": "บันทึก",
         "save_range": "ช่วงวันที่",
         "inv_section": "ใบแจ้งหนี้",
+        "dual_title": "การเปรียบเทียบตู้ 20' และ 40' ร่วมกัน",
     },
 }
 

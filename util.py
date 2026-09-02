@@ -148,23 +148,9 @@ def format_thb(v):
 
 def match_kiswire_customer(route_display, vendor_name, et_route_id, customer_list):
     rlower = route_display.lower()
-    aliases = {
-        "otani radial": "OTANI RADIAL CO.,LTD.",
-        "otani tire": "OTANI RADIAL CO.,LTD.",
-        "svizz": "SVIZZ ONE CO.,LTD.",
-        "thai bridgestone": "THAI BRIDGESTONE",
-        "bridgestone ncr": "BRIDGESTONE INDUSTRIAL PRODUCTS (THAILAND) CO. LTD. (FORMER: BRIDGESTONE NCR CO.,LTD)",
-        "bridgestone industrial": "BRIDGESTONE INDUSTRIAL PRODUCTS (THAILAND) CO. LTD. (FORMER: BRIDGESTONE NCR CO.,LTD)",
-        "bridgestone tire": "BRIDGESTONE TIRE MANUFACTURING (THAILAND) CO., LTD.",
-        "sumitomo": "SUMITOMO CO.,LTD.",
-        "sr tyre": "SR TYRE CO.,LTD.",
-        "sr tyres": "SR TYRE CO.,LTD.",
-        "continental": "CONTINENTAL TYRES (THAILAND) CO., LTD.",
-        "good year": "GOOD YEAR",
-        "goodyear": "GOOD YEAR",
-        "vee rubber": "VEE RUBBER CO.,LTD.",
-        "inoue": "INOUE RUBBER",
-    }
+    vlower = (vendor_name or "").lower()
+
+    # Route specific patterns (matching customer and location substring)
     route_patterns = [
         ("michelin siam (ppd)", "MICHELIN SIAM CO.,LTD.", "phrapradeang"),
         ("michelin siam (nong khae", "MICHELIN SIAM CO.,LTD.", "sara buri"),
@@ -174,17 +160,67 @@ def match_kiswire_customer(route_display, vendor_name, et_route_id, customer_lis
         ("มิชลิน แหลมฉบัง", "MICHELIN SIAM CO.,LTD.", "chon buri"),
         ("มิชลิน หนองแค", "MICHELIN SIAM CO.,LTD.", "sara buri"),
         ("มิชลิน พระประแดง", "MICHELIN SIAM CO.,LTD.", "phrapradeang"),
+        # Assawa routes
+        ("bridgestone (nong khae)", "THAI BRIDGESTONE", "sara buri"),
+        ("bridgestone nong khae", "THAI BRIDGESTONE", "sara buri"),
+        ("tha sai", "VEE RUBBER CO.,LTD.", "samutsakorn"),
+        ("sfc", "MICHELIN SIAM CO.,LTD.", "phrapradeang"),
+        ("phra samut chedi", "MICHELIN SIAM CO.,LTD.", "phrapradeang"),
     ]
     for pattern, cname, loc in route_patterns:
         if pattern in rlower:
             for i, c in enumerate(customer_list):
-                if c["customer"] == cname and loc in c["location"].lower():
+                if c["customer"] == cname and loc in c["location"].lower().replace(" ", ""):
                     return i
-    for kw, cname in aliases.items():
+
+    # Vendor-specific heuristics (e.g. ASSAWA)
+    if "assawa" in vlower:
+        if "bridgestone" in rlower:
+            for i, c in enumerate(customer_list):
+                if c["customer"] == "THAI BRIDGESTONE":
+                    return i
+        if "tha sai" in rlower or "samut sakhon" in rlower:
+            for i, c in enumerate(customer_list):
+                if c["customer"] == "VEE RUBBER CO.,LTD.":
+                    return i
+        if "sfc" in rlower or "phra samut chedi" in rlower:
+            for i, c in enumerate(customer_list):
+                if c["customer"] == "MICHELIN SIAM CO.,LTD." and "phrapradeang" in c["location"].lower().replace(" ", ""):
+                    return i
+
+    # Prioritized alias list
+    aliases = [
+        ("bridgestone ncr", "BRIDGESTONE INDUSTRIAL PRODUCTS (THAILAND) CO. LTD. (FORMER: BRIDGESTONE NCR CO.,LTD)"),
+        ("bridgestone industrial", "BRIDGESTONE INDUSTRIAL PRODUCTS (THAILAND) CO. LTD. (FORMER: BRIDGESTONE NCR CO.,LTD)"),
+        ("bridgestone tire", "BRIDGESTONE TIRE MANUFACTURING (THAILAND) CO., LTD."),
+        ("thai bridgestone", "THAI BRIDGESTONE"),
+        ("bridgestone (nong khae)", "THAI BRIDGESTONE"),
+        ("bridgestone", "THAI BRIDGESTONE"),
+        ("otani radial", "OTANI RADIAL CO.,LTD."),
+        ("otani tire", "OTANI RADIAL CO.,LTD."),
+        ("svizz", "SVIZZ ONE CO.,LTD."),
+        ("sumitomo", "SUMITOMO CO.,LTD."),
+        ("sr tyre", "SR TYRE CO.,LTD."),
+        ("sr tyres", "SR TYRE CO.,LTD."),
+        ("continental", "CONTINENTAL TYRES (THAILAND) CO., LTD."),
+        ("good year", "GOOD YEAR"),
+        ("goodyear", "GOOD YEAR"),
+        ("vee rubber", "VEE RUBBER CO.,LTD."),
+        ("tha sai", "VEE RUBBER CO.,LTD."),
+        ("inoue", "INOUE RUBBER"),
+        ("lion tyre", "LION TYRE CO.,LTD."),
+        ("victoria tyres", "LION TYRE CO.,LTD."),
+        ("maxxis", "MAXXIS  CO.,LTD."),
+        ("semperflex", "SEMPERFLEX"),
+        ("siamtruck", "SIAMTRUCK RADIAL"),
+        ("yokohama", "YOKOHAMA TIRE MANUFACTURING (THAILAND) CO.,LTD."),
+    ]
+    for kw, cname in aliases:
         if kw in rlower:
             for i, c in enumerate(customer_list):
                 if c["customer"] == cname:
                     return i
+
     if et_route_id:
         return None
     sorted_cx = sorted(enumerate(customer_list), key=lambda x: -len(x[1]["customer"]))
