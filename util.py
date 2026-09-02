@@ -19,46 +19,84 @@ def _fetch_ptt_month(year_be, month):
     import requests as req
     import calendar
     from datetime import date
+
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+        "X-Requested-With": "XMLHttpRequest",
+        "Referer": "https://www.pttor.com/oil-price",
+        "Origin": "https://www.pttor.com",
+        "Accept": "application/json, text/javascript, */*; q=0.01",
+    }
+    data = {
+        "action": "fetch_oil_prices",
+        "province": "กรุงเทพมหานคร",
+        "month": str(month),
+        "year": str(year_be),
+    }
+
     try:
-        resp = req.post(PTT_AJAX_URL, data={
-            "action": "fetch_oil_prices",
-            "province": "กรุงเทพมหานคร",
-            "month": str(month),
-            "year": str(year_be),
-        }, headers={
-            "X-Requested-With": "XMLHttpRequest",
-        }, timeout=10)
+        resp = req.post(PTT_AJAX_URL, data=data, headers=headers, timeout=15)
+        if resp.status_code != 200:
+            return None, None
         result = resp.json()
     except Exception:
         return None, None
 
-    if not result.get("success"):
+    if not result or not result.get("success"):
         return None, None
 
     year_ce = year_be - 543
     raw_events = {}
     for day_data in result.get("data", []):
+        pdate = day_data.get("priceDate")
         day_num = day_data.get("day")
-        if day_num is None:
+
+        iso_d = None
+        if pdate and len(str(pdate)) >= 10:
+            iso_d = str(pdate)[:10]
+        elif day_num is not None:
+            try:
+                iso_d = date(year_ce, month, int(day_num)).isoformat()
+            except (ValueError, TypeError):
+                iso_d = None
+
+        if not iso_d:
             continue
+
         diesel_price = None
         for oil in day_data.get("priceData", []):
-            if oil.get("OilTypeId") in (PTT_OIL_TYPE, "ดีเซล", "Standard Diesel", "Diesel"):
+            oil_type = oil.get("OilTypeId", "")
+            if oil_type in (PTT_OIL_TYPE, "ดีเซล", "Standard Diesel", "Diesel"):
                 diesel_price = oil.get("Price")
                 break
         if diesel_price is not None:
             try:
-                d = date(year_ce, month, int(day_num))
-                raw_events[d.isoformat()] = float(diesel_price)
+                raw_events[iso_d] = float(diesel_price)
             except (ValueError, TypeError):
                 continue
 
     if not raw_events:
         return None, None
 
+    # Forward-fill across the month, seeded by prior historical price if available
+    seed_price = None
+    try:
+        existing_fp = load_json(DATA_DIR / "ptt_fuel_prices.json")
+        existing_prices = existing_fp.get("prices", {})
+        month_prefix = f"{year_ce:04d}-{month:02d}"
+        for d_str in sorted(existing_prices.keys()):
+            if d_str < month_prefix:
+                seed_price = existing_prices[d_str]
+    except Exception:
+        pass
+
+    if seed_price is None and raw_events:
+        first_date = min(raw_events.keys())
+        seed_price = raw_events[first_date]
+
     num_days = calendar.monthrange(year_ce, month)[1]
     filled_prices = {}
-    last_price = None
+    last_price = seed_price
     for day_idx in range(1, num_days + 1):
         iso_str = f"{year_ce:04d}-{month:02d}-{day_idx:02d}"
         if iso_str in raw_events:
@@ -81,7 +119,7 @@ def fetch_month_from_ptt(year_be, month):
     if "prices" not in fp:
         fp["prices"] = {}
     fp["prices"].update(prices)
-
+    fp["prices"] = dict(sorted(fp["prices"].items()))
     actual_dates = set(fp.get("actual_dates", []))
     if raw_events:
         actual_dates.update(raw_events.keys())
