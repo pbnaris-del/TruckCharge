@@ -23,6 +23,12 @@
       "password_hash": "dbc7e0ce337d2b2c86ae4bdff1403da0771738ef50968f9c50ec194981042fc0",
       "role": "admin",
       "display": "Nuttapong"
+    },
+    {
+      "username": "Mild",
+      "password_hash": "329d81722740efdd0d33a5f122e491d8627614d5dc3a2b5838dffe697d964cb9",
+      "role": "admin",
+      "display": "Mild"
     }
   ]
 }
