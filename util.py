@@ -152,15 +152,17 @@ def match_kiswire_customer(route_display, vendor_name, et_route_id, customer_lis
 
     # Route specific patterns (matching customer and location substring)
     route_patterns = [
+        ("michelin siam (phra pradaeng", "MICHELIN SIAM CO.,LTD.", "phrapradeang"),
         ("michelin siam (ppd)", "MICHELIN SIAM CO.,LTD.", "phrapradeang"),
         ("michelin siam (nong khae", "MICHELIN SIAM CO.,LTD.", "sara buri"),
         ("michelin nongkhae", "MICHELIN SIAM CO.,LTD.", "sara buri"),
+        ("michelin (laem chabang", "MICHELIN SIAM CO.,LTD.", "chon buri"),
         ("michelin lch", "MICHELIN SIAM CO.,LTD.", "chon buri"),
-        ("michelin (laem chabang)", "MICHELIN SIAM CO.,LTD.", "chon buri"),
         ("มิชลิน แหลมฉบัง", "MICHELIN SIAM CO.,LTD.", "chon buri"),
         ("มิชลิน หนองแค", "MICHELIN SIAM CO.,LTD.", "sara buri"),
         ("มิชลิน พระประแดง", "MICHELIN SIAM CO.,LTD.", "phrapradeang"),
-        # Assawa routes
+        # Assawa & normalized routes
+        ("thai bridgestone (nong khae", "THAI BRIDGESTONE", "sara buri"),
         ("bridgestone (nong khae)", "THAI BRIDGESTONE", "sara buri"),
         ("bridgestone nong khae", "THAI BRIDGESTONE", "sara buri"),
         ("tha sai", "VEE RUBBER CO.,LTD.", "samutsakorn"),
