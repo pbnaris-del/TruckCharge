@@ -119,7 +119,7 @@ def ensure_fuel_price_auto(d):
 
 
 def load_json(path):
-    with open(path, encoding="utf-8") as f:
+    with open(path, encoding="utf-8-sig") as f:
         return json.load(f)
 
 
@@ -247,7 +247,7 @@ def _ensure_users_file():
         with open(USERS_FILE, "w", encoding="utf-8") as f:
             json.dump(default_users, f, indent=2)
         return default_users
-    with open(USERS_FILE, encoding="utf-8") as f:
+    with open(USERS_FILE, encoding="utf-8-sig") as f:
         return json.load(f)
 
 
@@ -330,7 +330,7 @@ def get_activity_log(limit=50):
     if not AUDIT_LOG.exists():
         return []
     entries = []
-    with open(AUDIT_LOG, encoding="utf-8") as f:
+    with open(AUDIT_LOG, encoding="utf-8-sig") as f:
         for line in f:
             line = line.strip()
             if line:
@@ -370,7 +370,7 @@ def _backup_master():
 # ── Master file helpers ──
 
 def _load_master():
-    with open(DATA_DIR / "quotation_master.json", encoding="utf-8") as f:
+    with open(DATA_DIR / "quotation_master.json", encoding="utf-8-sig") as f:
         return json.load(f)
 
 
