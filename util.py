@@ -154,13 +154,6 @@ def match_kiswire_customer(route_display, vendor_name, et_route_id, customer_lis
     r_norm = r_orig.replace(" ", "").replace("-", "").replace("→", "").replace("↔", "")
     v_norm = (vendor_name or "").lower()
 
-    # 0. Direct match against canonical_route if available
-    for i, c in enumerate(customer_list):
-        c_route = c.get("canonical_route")
-        if c_route:
-            c_norm = c_route.lower().replace(" ", "").replace("-", "").replace("→", "").replace("↔", "").replace("/", "")
-            if r_norm in c_norm or c_norm in r_norm:
-                return i
 
     # 1. Location-Specific Michelin Matching
     if "michelin" in r_orig or "มิชลิน" in r_orig or "sfc" in r_orig or "phrasamutchedi" in r_norm:

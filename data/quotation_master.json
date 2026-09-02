@@ -50,7 +50,7 @@
                                 "routes":  [
                                                {
                                                    "id":  "hpm_ingredion_20ft",
-                                                   "display":  "LCB ↔ Ingredion (Sikhiu) [20\u0027 Container]",
+                                                   "display":  "LCB ↔ Ingredion (Ban Khao Din) [20\u0027 Container]",
                                                    "is_et_route":  false,
                                                    "bands":  [
                                                                  {
@@ -147,7 +147,7 @@
                                                },
                                                {
                                                    "id":  "hpm_ingredion_40ft",
-                                                   "display":  "LCB ↔ Ingredion (Sikhiu) [40\u0027 Container]",
+                                                   "display":  "LCB ↔ Ingredion (Ban Khao Din) [40\u0027 Container]",
                                                    "is_et_route":  false,
                                                    "bands":  [
                                                                  {
@@ -244,7 +244,7 @@
                                                },
                                                {
                                                    "id":  "hpm_ingredion_iso_tank",
-                                                   "display":  "LCB ↔ Ingredion (Sikhiu) [ISO Tank]",
+                                                   "display":  "LCB ↔ Ingredion (Ban Khao Din) [ISO Tank]",
                                                    "is_et_route":  false,
                                                    "bands":  [
                                                                  {
@@ -341,7 +341,7 @@
                                                },
                                                {
                                                    "id":  "hpm_ingredion_flexibag",
-                                                   "display":  "LCB ↔ Ingredion (Sikhiu) [Flexibag 24MT]",
+                                                   "display":  "LCB ↔ Ingredion (Ban Khao Din) [Flexibag 24MT]",
                                                    "is_et_route":  false,
                                                    "bands":  [
                                                                  {

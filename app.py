@@ -468,9 +468,6 @@ def main():
         if idx == 0:
             return t["select_kiswire"]
         c = customer_list[idx - 1]
-        route_lbl = c.get("canonical_route")
-        if route_lbl:
-            return f"{route_lbl} [{c['customer']}]"
         return f"{c['customer']} ({c['location']})"
 
     matched_idx = match_kiswire_customer(sel_route_display, sel_vendor, sel_route.get("et_route_id"), customer_list)
