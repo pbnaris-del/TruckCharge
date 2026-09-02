@@ -50,7 +50,7 @@
                                 "routes":  [
                                                {
                                                    "id":  "hpm_ingredion_20ft",
-                                                   "display":  "LCB ↔ Ingredion (Kalasin) [20\u0027 Container]",
+                                                   "display":  "LCB ↔ Ingredion (Sikhiu) [20\u0027 Container]",
                                                    "is_et_route":  false,
                                                    "bands":  [
                                                                  {
@@ -147,7 +147,7 @@
                                                },
                                                {
                                                    "id":  "hpm_ingredion_40ft",
-                                                   "display":  "LCB ↔ Ingredion (Kalasin) [40\u0027 Container]",
+                                                   "display":  "LCB ↔ Ingredion (Sikhiu) [40\u0027 Container]",
                                                    "is_et_route":  false,
                                                    "bands":  [
                                                                  {
@@ -244,7 +244,7 @@
                                                },
                                                {
                                                    "id":  "hpm_ingredion_iso_tank",
-                                                   "display":  "LCB ↔ Ingredion (Kalasin) [ISO Tank]",
+                                                   "display":  "LCB ↔ Ingredion (Sikhiu) [ISO Tank]",
                                                    "is_et_route":  false,
                                                    "bands":  [
                                                                  {
@@ -341,7 +341,7 @@
                                                },
                                                {
                                                    "id":  "hpm_ingredion_flexibag",
-                                                   "display":  "LCB ↔ Ingredion (Kalasin) [Flexibag 24MT]",
+                                                   "display":  "LCB ↔ Ingredion (Sikhiu) [Flexibag 24MT]",
                                                    "is_et_route":  false,
                                                    "bands":  [
                                                                  {
@@ -5045,7 +5045,7 @@
                                 "routes":  [
                                                {
                                                    "id":  "vkn_ingredion_20ft",
-                                                   "display":  "LCB ↔ Ingredion (Kalasin) [20\u0027 Container]",
+                                                   "display":  "LCB ↔ Ingredion (Sikhiu) [20\u0027 Container]",
                                                    "is_et_route":  false,
                                                    "bands":  [
                                                                  {
@@ -5142,7 +5142,7 @@
                                                },
                                                {
                                                    "id":  "vkn_ingredion_40ft",
-                                                   "display":  "LCB ↔ Ingredion (Kalasin) [40\u0027 Container]",
+                                                   "display":  "LCB ↔ Ingredion (Sikhiu) [40\u0027 Container]",
                                                    "is_et_route":  false,
                                                    "bands":  [
                                                                  {
@@ -5239,7 +5239,7 @@
                                                },
                                                {
                                                    "id":  "vkn_ingredion_iso_tank",
-                                                   "display":  "LCB ↔ Ingredion (Kalasin) [ISO Tank]",
+                                                   "display":  "LCB ↔ Ingredion (Sikhiu) [ISO Tank]",
                                                    "is_et_route":  false,
                                                    "bands":  [
                                                                  {
@@ -5336,7 +5336,7 @@
                                                },
                                                {
                                                    "id":  "vkn_ingredion_flexibag",
-                                                   "display":  "LCB ↔ Ingredion (Kalasin) [Flexibag 24MT]",
+                                                   "display":  "LCB ↔ Ingredion (Sikhiu) [Flexibag 24MT]",
                                                    "is_et_route":  false,
                                                    "bands":  [
                                                                  {
@@ -6305,7 +6305,7 @@
                                       "routes":  [
                                                      {
                                                          "id":  "ingredion_20ft",
-                                                         "display":  "LCB ↔ Ingredion (Kalasin) [20\u0027 Container]",
+                                                         "display":  "LCB ↔ Ingredion (Sikhiu) [20\u0027 Container]",
                                                          "is_et_route":  false,
                                                          "bands":  [
                                                                        {
@@ -6402,7 +6402,7 @@
                                                      },
                                                      {
                                                          "id":  "ingredion_40ft",
-                                                         "display":  "LCB ↔ Ingredion (Kalasin) [40\u0027 Container]",
+                                                         "display":  "LCB ↔ Ingredion (Sikhiu) [40\u0027 Container]",
                                                          "is_et_route":  false,
                                                          "bands":  [
                                                                        {
@@ -6499,7 +6499,7 @@
                                                      },
                                                      {
                                                          "id":  "ingredion_iso_tank",
-                                                         "display":  "LCB ↔ Ingredion (Kalasin) [ISO Tank]",
+                                                         "display":  "LCB ↔ Ingredion (Sikhiu) [ISO Tank]",
                                                          "is_et_route":  false,
                                                          "bands":  [
                                                                        {
@@ -6596,7 +6596,7 @@
                                                      },
                                                      {
                                                          "id":  "ingredion_flexibag",
-                                                         "display":  "LCB ↔ Ingredion (Kalasin) [Flexibag 24MT]",
+                                                         "display":  "LCB ↔ Ingredion (Sikhiu) [Flexibag 24MT]",
                                                          "is_et_route":  false,
                                                          "bands":  [
                                                                        {
