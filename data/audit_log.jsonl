@@ -3,4 +3,5 @@
 {"timestamp": "2026-08-27T11:44:00.000000", "user": "system", "action": "vendor_consolidated", "details": "Consolidated 'FUSION' into 'FNP' (FNP Logistics Co.,LTD. - Former name: FUSION) with all 4 routes"}
 {"timestamp": "2026-09-02T10:55:00.000000", "user": "system", "action": "user_created", "details": "Added ID Mild with password Mild"}
 {"timestamp": "2026-09-02T11:12:00.000000", "user": "system", "action": "routes_normalized", "details": "Normalized all vendor routes with BKK Depot/LCB standard naming and deployed combined 20ft & 40ft UI"}
+{"timestamp": "2026-09-02T11:21:00.000000", "user": "system", "action": "kiswire_routes_aligned", "details": "Aligned KISWIRE customer master with canonical vendor route names 1:1"}
 
